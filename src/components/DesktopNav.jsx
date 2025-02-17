@@ -6,10 +6,6 @@ const DesktopNav = () => {
   const [hoveredItem, setHoveredItem] = useState(null);
 
   const dropdownContent = {
-    services: [
-      { label: "Core Strength", path: "/core-strengths" },
-      { label: "PPP", path: "/PPP" }
-    ],
     investor: [
       "NSDL eVoting System",
       "Annual Reports",
@@ -57,9 +53,9 @@ const DesktopNav = () => {
 
   const NavDropdown = ({ items, columns = 1, width = "200px" }) => {
     const gridClass = columns > 1 ? `grid grid-cols-${columns} gap-2` : "";
-    
+
     return (
-      <div 
+      <div
         className={`absolute top-full z-50 left-0 bg-white shadow-md rounded-b-md ${gridClass}`}
         style={{ width }}
       >
@@ -105,20 +101,10 @@ const DesktopNav = () => {
             Brand Manager
           </Link>
         </li>
-        <li
-          className="relative"
-          onMouseEnter={() => setHoveredItem("services")}
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <button 
-            className="text-white text-sm font-medium hover:text-gray-200 py-5 inline-flex items-center whitespace-nowrap transition-colors duration-200"
-            aria-expanded={hoveredItem === "services"}
-          >
-            Services <FaChevronDown className="text-xs ml-1" />
-          </button>
-          {hoveredItem === "services" && (
-            <NavDropdown items={dropdownContent.services} width="220px" />
-          )}
+        <li>
+          <Link to="/BuyerOverview" className="text-white text-sm font-medium hover:text-gray-200 py-5 inline-block whitespace-nowrap transition-colors duration-200">
+            Buyer Overview
+          </Link>
         </li>
         <li>
           <Link to="/management" className="text-white text-sm font-medium hover:text-gray-200 py-5 inline-block whitespace-nowrap transition-colors duration-200">
@@ -130,7 +116,7 @@ const DesktopNav = () => {
           onMouseEnter={() => setHoveredItem("investor")}
           onMouseLeave={() => setHoveredItem(null)}
         >
-          <button 
+          <button
             className="text-white text-sm font-medium hover:text-gray-200 py-5 inline-flex items-center whitespace-nowrap transition-colors duration-200"
             aria-expanded={hoveredItem === "investor"}
           >
@@ -153,7 +139,7 @@ const DesktopNav = () => {
           onMouseEnter={() => setHoveredItem("compliance")}
           onMouseLeave={() => setHoveredItem(null)}
         >
-          <button 
+          <button
             className="text-white text-sm font-medium hover:text-gray-200 py-5 inline-flex items-center whitespace-nowrap transition-colors duration-200"
             aria-expanded={hoveredItem === "compliance"}
           >

@@ -1,10 +1,7 @@
 
 import React from 'react';
 import {
-  Folder, Video, Heart, Activity,
-  DollarSign, TrendingUp, Globe, PieChart,
-  Camera, MessageSquare, Share2, Bell,
-  CheckCircle, Clock, AlertCircle, ShoppingBag
+  Activity, DollarSign, TrendingUp, Globe, PieChart, Share2, Bell, Clock, AlertCircle, ShoppingBag
 } from 'lucide-react';
 
 const BrandManagerDashboard = () => {
@@ -15,7 +12,6 @@ const BrandManagerDashboard = () => {
     { title: 'Brand Growth', value: '18.2%', icon: <TrendingUp className="w-6 h-6" />, trend: '+5.4%', color: 'purple' }
   ];
 
-  // Recent Activities data
   const recentActivities = [
     { 
       type: 'Product Launch', 
@@ -47,7 +43,6 @@ const BrandManagerDashboard = () => {
     }
   ];
 
-  // Notifications data
   const notifications = [
     { 
       type: 'critical', 
@@ -71,7 +66,7 @@ const BrandManagerDashboard = () => {
 
   return (
     <div className="absolute overflow-y-auto bg-[#fbfbfb] h-screen p-8 top-0 w-full left-0 xl:left-[250px] xl:w-[calc(100%-250px)]">
-      <div className="max-w-7xl mx-auto">
+      <div className="container-fluid mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>

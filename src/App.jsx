@@ -4,6 +4,7 @@ import Header from './components/header'
 import Footer from './components/footer'
 import Navbar from './components/sidebar'
 import BrandManagerSidebar from './components/brandManagerSidebar'
+import BuyerSidebar from './components/buyerSidebar'
 // Brand owner panel
 
 import BrandOwnerOverview from './pages/ownerPanel/overview/overview'
@@ -24,11 +25,56 @@ import BrandManagerBrands from './pages/panels/brand-manager/brands/brands'
 import BrandManagerProducts from './pages/panels/brand-manager/products/products'
 import BrandManagerSubscription from './pages/panels/brand-manager/subscription/subscription'
 
+//Buyer dashboard
+
+import BuyerOverview from './pages/panels/buyer/overview/overview'
+import BuyerBrands from './pages/panels/buyer/brands/brands'
+import BuyerProducts from './pages/panels/buyer/products/products'
+import BuyerFavourites from './pages/panels/buyer/favorites/favourites'
+import BuyerRequests from './pages/panels/buyer/requests/requests'
+import BuyerMeetings from './pages/panels/buyer/meetings/meetings'
+import BuyerHistory from './pages/panels/buyer/history/history'
+import BuyerSettings from './pages/panels/buyer/settings/settings'
+
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <><Header /><Home /><Footer /></>,
+  },
+
+  // Buyer Dashboard
+  {
+    path: "/BuyerOverview",
+    element: <><BuyerSidebar /><BuyerOverview /></>,
+  },
+  {
+    path: "/BuyerBrands",
+    element: <><BuyerSidebar /><BuyerBrands /></>,
+  },
+  {
+    path: "/BuyerProducts",
+    element: <><BuyerSidebar /><BuyerProducts /></>,
+  },
+  {
+    path: "/BuyerFavourites",
+    element: <><BuyerSidebar /><BuyerFavourites /></>,
+  },
+  {
+    path: "/BuyerRequests",
+    element: <><BuyerSidebar /><BuyerRequests /></>,
+  },
+  {
+    path: "/BuyerMeetings",
+    element: <><BuyerSidebar /><BuyerMeetings /></>,
+  },
+  {
+    path: "/BuyerHistory",
+    element: <><BuyerSidebar /><BuyerHistory /></>,
+  },
+  {
+    path: "/BuyerSettings",
+    element: <><BuyerSidebar /><BuyerSettings /></>,
   },
 
   //Brand owner dashboard
