@@ -35,7 +35,7 @@ const Header = () => {
         </div>
       </div>
 
-      <div className={`bg-white md:bg-[#AB1621] transition-colors duration-300`}>
+      <div className={`bg-white md:bg-gradient-to-r from-blue-600 to-indigo-600 transition-colors duration-300`}>
         <div className="container-fluid mx-auto relative">
           <AnimatePresence>
             {!isMobileMenuOpen && (
@@ -46,7 +46,7 @@ const Header = () => {
                 transition={{ duration: 0.3 }}
                 className="absolute left-1/2 md:left-12 transform -translate-x-1/2 md:translate-x-0 -top-8 bg-white p-4 shadow-md z-20"
               >
-                <Link to="/Overview">
+                <Link to="/">
                   <img
                     src="https://www.vlsfinance.com/wp-content/uploads/2020/01/vlsf-logo.png"
                     alt="VLS Finance Logo"

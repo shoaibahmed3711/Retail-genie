@@ -107,7 +107,7 @@ const DesktopNav = () => {
           </Link>
         </li>
         <li>
-          <Link to="/management" className="text-white text-sm font-medium hover:text-gray-200 py-5 inline-block whitespace-nowrap transition-colors duration-200">
+          <Link to="/AdminOverview" className="text-white text-sm font-medium hover:text-gray-200 py-5 inline-block whitespace-nowrap transition-colors duration-200">
             Management
           </Link>
         </li>
@@ -128,10 +128,10 @@ const DesktopNav = () => {
         </li>
         <li>
           <Link
-            to="/proprietary"
+            to="/pricing"
             className="text-white text-sm font-medium hover:text-gray-200 py-5 inline-block whitespace-nowrap transition-colors duration-200"
           >
-            Proprietary Investment
+            Pricing
           </Link>
         </li>
         <li
@@ -154,6 +154,11 @@ const DesktopNav = () => {
             Contact Us
           </Link>
         </li>
+        <button>
+          <Link to="/SignIn"  className="text-white bg-black text-sm font-medium hover:text-gray-200 p-3 rounded-lg inline-block whitespace-nowrap transition-colors duration-200">
+            SignIn
+          </Link>
+        </button>
       </ul>
     </nav>
   );

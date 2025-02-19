@@ -69,7 +69,7 @@ const HeroSection = () => {
     <div className="relative text-white overflow-hidden">
       <div
         style={{
-          backgroundImage: `linear-gradient(rgba(183, 28, 28, 0.1), rgba(183, 28, 28, 0.1)), url(${images[currentSlide]})`,
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url(${images[currentSlide]})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

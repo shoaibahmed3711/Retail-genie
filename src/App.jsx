@@ -1,22 +1,24 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+
 // components
 import Header from './components/header'
 import Footer from './components/footer'
 import Navbar from './components/sidebar'
 import BrandManagerSidebar from './components/brandManagerSidebar'
 import BuyerSidebar from './components/buyerSidebar'
-// Brand owner panel
+import AdminSidebar from './components/adminSidebar'
 
+// authentication
+import SignIn from './auth/sign-in/sign-in'
+
+// Brand owner panel
 import BrandOwnerOverview from './pages/ownerPanel/overview/overview'
 import MyBrand from './pages/ownerPanel/my-brand/my-brand'
 import Products from './pages/ownerPanel/products/products'
 import Analystics from './pages/ownerPanel/analytics/analytics'
 import Settings from './pages/ownerPanel/settings/settings'
-// pages
-import Home from './pages/home/home'
 
 //Brand Manager dashboard
-
 import BrandManagerSettings from './pages/panels/brand-manager/settings/settings'
 import BrandManagerTeam from './pages/panels/brand-manager/team/team'
 import BrandManagerAnalytics from './pages/panels/brand-manager/analytics/analytics'
@@ -26,7 +28,6 @@ import BrandManagerProducts from './pages/panels/brand-manager/products/products
 import BrandManagerSubscription from './pages/panels/brand-manager/subscription/subscription'
 
 //Buyer dashboard
-
 import BuyerOverview from './pages/panels/buyer/overview/overview'
 import BuyerBrands from './pages/panels/buyer/brands/brands'
 import BuyerProducts from './pages/panels/buyer/products/products'
@@ -36,11 +37,25 @@ import BuyerMeetings from './pages/panels/buyer/meetings/meetings'
 import BuyerHistory from './pages/panels/buyer/history/history'
 import BuyerSettings from './pages/panels/buyer/settings/settings'
 
+// Admin dashboard
+import AdminOverview from './pages/panels/admin/overview/overview'
+import AdminProduct from './pages/panels/admin/product/product'
+import AdminRole from './pages/panels/admin/roles/role'
+import AdminTransations from './pages/panels/admin/transactions/transations'
+import AdminSettings from './pages/panels/admin/settings/settings'
 
+// pages
+import Home from './pages/home/home'
+import Pricing from './pages/pricing/Pricing'
 const router = createBrowserRouter([
+  
   {
     path: "/",
     element: <><Header /><Home /><Footer /></>,
+  },
+  {
+    path: "/pricing",
+    element: <><Header /><Pricing /><Footer /></>,
   },
 
   // Buyer Dashboard
@@ -127,6 +142,34 @@ const router = createBrowserRouter([
   {
     path: "/brandManagerSettings",
     element: <><BrandManagerSidebar /><BrandManagerSettings /></>,
+  },
+
+  //Admin dashboard
+  {
+    path: "/AdminOverview",
+    element: <><AdminSidebar /><AdminOverview /></>,
+  },
+  {
+    path: "/AdminProduct",
+    element: <><AdminSidebar /><AdminProduct /></>,
+  },
+  {
+    path: "/AdminRole",
+    element: <><AdminSidebar /><AdminRole /></>,
+  },
+  {
+    path: "/AdminTransations",
+    element: <><AdminSidebar /><AdminTransations /></>,
+  },
+  {
+    path: "/AdminSettings",
+    element: <><AdminSidebar /><AdminSettings /></>,
+  },
+
+  //authentication
+  {
+    path: "/SignIn",
+    element: <><SignIn /></>,
   },
 ]);
 

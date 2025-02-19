@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import {
     Plus, Package, Search, Filter, SortAsc,
     Share2, Heart, Edit2, Trash2, TrendingUp,
-    ShoppingCart, Tag, BarChart2, Calendar,
-    Clock, DollarSign, Percent, Box
+    ShoppingCart, Clock, DollarSign, Box, Briefcase, Award
 } from 'lucide-react';
 
-// Initial product data
+// Initial product data with expanded fields
 const initialProducts = [
     {
         id: 1,
         name: "Premium Headphones",
         description: "High-quality wireless headphones with noise cancellation",
+        detailedDescription: "Our flagship headphones featuring 40mm dynamic drivers, active noise cancellation, and 30-hour battery life. Perfect for audiophiles and travelers.",
         category: "Electronics",
         price: 199.99,
+        cogs: 89.50,
+        margin: 55.25,
         stock: 45,
         discount: 10,
         status: "In Stock",
@@ -22,18 +24,23 @@ const initialProducts = [
         lastUpdated: "2024-02-12",
         revenue: 31156,
         rating: 4.5,
-        imageUrl: "/api/placeholder/300/300"
+        imageUrl: "/api/placeholder/300/300",
+        packaging: "Premium box with foam inserts and carrying case",
+        distributors: ["Global Tech Distributors", "AudioPro Network"],
+        brokers: ["ElectroDeals Agency"],
+        marketingChannels: ["Social Media", "Tech Blogs", "Influencer Program"]
     },
-    // Add more sample products here
 ];
 
-// ProductForm Component
 const ProductForm = ({ onClose, onAddProduct, editProduct = null }) => {
     const [formData, setFormData] = useState(editProduct || {
         name: '',
         description: '',
+        detailedDescription: '',
         category: '',
         price: '',
+        cogs: '',
+        margin: '',
         stock: '',
         discount: '',
         status: 'In Stock',
@@ -41,33 +48,61 @@ const ProductForm = ({ onClose, onAddProduct, editProduct = null }) => {
         salesCount: 0,
         revenue: 0,
         rating: 0,
-        imageUrl: '/api/placeholder/300/300'
+        imageUrl: '/api/placeholder/300/300',
+        packaging: '',
+        distributors: [],
+        brokers: [],
+        marketingChannels: []
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        const calculatedMargin = formData.price && formData.cogs
+            ? ((formData.price - formData.cogs) / formData.price * 100).toFixed(2)
+            : formData.margin;
+
         onAddProduct({
             ...formData,
+            margin: calculatedMargin,
             id: editProduct ? editProduct.id : Date.now(),
             lastUpdated: new Date().toISOString().split('T')[0]
         });
         onClose();
     };
 
-    const handleTagInput = (e) => {
+    const handleTagInput = (e, field) => {
         if (e.key === 'Enter' && e.target.value) {
             e.preventDefault();
             setFormData({
                 ...formData,
-                tags: [...(formData.tags || []), e.target.value]
+                [field]: [...(formData[field] || []), e.target.value]
             });
             e.target.value = '';
         }
     };
 
+    const handlePriceOrCogsChange = (field, value) => {
+        const updatedData = { ...formData, [field]: value };
+
+        // Auto-calculate margin when both price and COGS are available
+        if (updatedData.price && updatedData.cogs) {
+            const margin = ((updatedData.price - updatedData.cogs) / updatedData.price * 100).toFixed(2);
+            updatedData.margin = margin;
+        }
+
+        setFormData(updatedData);
+    };
+
+    const removeTag = (field, index) => {
+        setFormData({
+            ...formData,
+            [field]: formData[field].filter((_, i) => i !== index)
+        });
+    };
+
     return (
         <div className="fixed inset-0 bg-black/40 bg-opacity-40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-2xl p-8 w-full max-w-3xl shadow-xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold">{editProduct ? 'Edit Product' : 'Add New Product'}</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -100,13 +135,23 @@ const ProductForm = ({ onClose, onAddProduct, editProduct = null }) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Short Description</label>
                         <textarea
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
-                            rows="3"
+                            rows="2"
                             required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Detailed Description</label>
+                        <textarea
+                            value={formData.detailedDescription}
+                            onChange={(e) => setFormData({ ...formData, detailedDescription: e.target.value })}
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            rows="3"
                         />
                     </div>
 
@@ -116,12 +161,34 @@ const ProductForm = ({ onClose, onAddProduct, editProduct = null }) => {
                             <input
                                 type="number"
                                 value={formData.price}
-                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                onChange={(e) => handlePriceOrCogsChange('price', e.target.value)}
                                 className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
                                 required
                                 step="0.01"
                             />
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">COGS ($)</label>
+                            <input
+                                type="number"
+                                value={formData.cogs}
+                                onChange={(e) => handlePriceOrCogsChange('cogs', e.target.value)}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                                step="0.01"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Margin (%)</label>
+                            <input
+                                type="number"
+                                value={formData.margin}
+                                className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50"
+                                readOnly
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Stock</label>
                             <input
@@ -143,22 +210,127 @@ const ProductForm = ({ onClose, onAddProduct, editProduct = null }) => {
                                 max="100"
                             />
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="In Stock">In Stock</option>
+                                <option value="Low Stock">Low Stock</option>
+                                <option value="Out of Stock">Out of Stock</option>
+                                <option value="Discontinued">Discontinued</option>
+                                <option value="Coming Soon">Coming Soon</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                        <input
-                            type="text"
-                            placeholder="Press Enter to add tags"
-                            onKeyPress={handleTagInput}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Packaging</label>
+                        <textarea
+                            value={formData.packaging}
+                            onChange={(e) => setFormData({ ...formData, packaging: e.target.value })}
                             className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            rows="2"
                         />
-                        <div className="flex flex-wrap gap-2 mt-2">
-                            {formData.tags?.map((tag, index) => (
-                                <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-sm">
-                                    {tag}
-                                </span>
-                            ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                            <input
+                                type="text"
+                                placeholder="Press Enter to add tags"
+                                onKeyPress={(e) => handleTagInput(e, 'tags')}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {formData.tags?.map((tag, index) => (
+                                    <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-sm flex items-center">
+                                        {tag}
+                                        <button
+                                            type="button"
+                                            className="ml-1 text-blue-600 hover:text-blue-800"
+                                            onClick={() => removeTag('tags', index)}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Distributors</label>
+                            <input
+                                type="text"
+                                placeholder="Press Enter to add distributors"
+                                onKeyPress={(e) => handleTagInput(e, 'distributors')}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {formData.distributors?.map((distributor, index) => (
+                                    <span key={index} className="bg-green-100 text-green-800 px-2 py-1 rounded-lg text-sm flex items-center">
+                                        {distributor}
+                                        <button
+                                            type="button"
+                                            className="ml-1 text-green-600 hover:text-green-800"
+                                            onClick={() => removeTag('distributors', index)}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Brokers</label>
+                            <input
+                                type="text"
+                                placeholder="Press Enter to add brokers"
+                                onKeyPress={(e) => handleTagInput(e, 'brokers')}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {formData.brokers?.map((broker, index) => (
+                                    <span key={index} className="bg-purple-100 text-purple-800 px-2 py-1 rounded-lg text-sm flex items-center">
+                                        {broker}
+                                        <button
+                                            type="button"
+                                            className="ml-1 text-purple-600 hover:text-purple-800"
+                                            onClick={() => removeTag('brokers', index)}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Marketing Channels</label>
+                            <input
+                                type="text"
+                                placeholder="Press Enter to add marketing channels"
+                                onKeyPress={(e) => handleTagInput(e, 'marketingChannels')}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {formData.marketingChannels?.map((channel, index) => (
+                                    <span key={index} className="bg-orange-100 text-orange-800 px-2 py-1 rounded-lg text-sm flex items-center">
+                                        {channel}
+                                        <button
+                                            type="button"
+                                            className="ml-1 text-orange-600 hover:text-orange-800"
+                                            onClick={() => removeTag('marketingChannels', index)}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
@@ -177,6 +349,7 @@ const ProductForm = ({ onClose, onAddProduct, editProduct = null }) => {
 
 const ProductCard = ({ product, onEdit, onDelete }) => {
     const [isLiked, setIsLiked] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
 
     return (
         <div className="bg-white hover:bg-gray-100 transition-colors duration-200 rounded-2xl p-6 shadow-lg hover:shadow-xl">
@@ -222,21 +395,117 @@ const ProductCard = ({ product, onEdit, onDelete }) => {
             <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center gap-2">
                     <DollarSign size={16} className="text-gray-400" />
-                    <span className="font-bold">${product.price}</span>
+                    <span className="font-bold">${Number(product.price).toFixed(2)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <Box size={16} className="text-gray-400" />
                     <span>{product.stock} in stock</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Percent size={16} className="text-gray-400" />
-                    <span>{product.discount}% off</span>
+                    <Award size={16} className="text-gray-400" />
+                    <span>{product.margin}% margin</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <ShoppingCart size={16} className="text-gray-400" />
                     <span>{product.salesCount} sold</span>
                 </div>
             </div>
+
+            {/* Expandable Details Section */}
+            <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium mb-4 flex items-center"
+            >
+                {showDetails ? "Hide details" : "Show more details"}
+                <svg
+                    className={`ml-1 w-4 h-4 transition-transform ${showDetails ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {showDetails && (
+                <div className="border-t border-gray-200 pt-4 mb-4 text-sm space-y-3">
+                    {product.detailedDescription && (
+                        <div>
+                            <h4 className="font-medium text-gray-900 mb-1">Detailed Description</h4>
+                            <p className="text-gray-600">{product.detailedDescription}</p>
+                        </div>
+                    )}
+
+                    {product.packaging && (
+                        <div>
+                            <h4 className="font-medium text-gray-900 mb-1 flex items-center">
+                                <Package size={16} className="mr-1" />
+                                Packaging
+                            </h4>
+                            <p className="text-gray-600">{product.packaging}</p>
+                        </div>
+                    )}
+
+                    {product.distributors && product.distributors.length > 0 && (
+                        <div>
+                            <h4 className="font-medium text-gray-900 mb-1 flex items-center">
+                                <Share2 size={16} className="mr-1" />
+                                Distributors
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                                {product.distributors.map((distributor, index) => (
+                                    <span key={index} className="bg-green-50 text-green-600 px-2 py-1 rounded-full text-xs">
+                                        {distributor}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {product.brokers && product.brokers.length > 0 && (
+                        <div>
+                            <h4 className="font-medium text-gray-900 mb-1 flex items-center">
+                                <Briefcase size={16} className="mr-1" />
+                                Brokers
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                                {product.brokers.map((broker, index) => (
+                                    <span key={index} className="bg-purple-50 text-purple-600 px-2 py-1 rounded-full text-xs">
+                                        {broker}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {product.marketingChannels && product.marketingChannels.length > 0 && (
+                        <div>
+                            <h4 className="font-medium text-gray-900 mb-1 flex items-center">
+                                <Award size={16} className="mr-1" />
+                                Marketing Channels
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                                {product.marketingChannels.map((channel, index) => (
+                                    <span key={index} className="bg-orange-50 text-orange-600 px-2 py-1 rounded-full text-xs">
+                                        {channel}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <h4 className="font-medium text-gray-900 mb-1">Cost of Goods</h4>
+                            <p className="text-gray-600">${Number(product.cogs).toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <h4 className="font-medium text-gray-900 mb-1">Discount</h4>
+                            <p className="text-gray-600">{product.discount}% off</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                 <div className="flex items-center text-green-500">
@@ -291,6 +560,7 @@ const ProductManagement = () => {
                 case 'price': return a.price - b.price;
                 case 'sales': return b.salesCount - a.salesCount;
                 case 'revenue': return b.revenue - a.revenue;
+                case 'margin': return b.margin - a.margin;
                 default: return a.name.localeCompare(b.name);
             }
         });
@@ -299,7 +569,7 @@ const ProductManagement = () => {
 
     return (
         <div className="absolute overflow-y-auto bg-[#fbfbfb] h-screen p-8 top-0 w-full left-0 xl:left-[250px] xl:w-[calc(100%-250px)]">
-            <div className=' container-fluid'>
+            <div className='container-fluid'>
                 <div className="flex justify-between items-center mb-4">
                     <div>
                         <h1 className="text-xl font-bold text-gray-900">Products Overview</h1>
@@ -315,7 +585,7 @@ const ProductManagement = () => {
                     </button>
                 </div>
 
-                <div className=" mb-4 ">
+                <div className="mb-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -353,6 +623,7 @@ const ProductManagement = () => {
                                 <option value="price">Sort by Price</option>
                                 <option value="sales">Sort by Sales</option>
                                 <option value="revenue">Sort by Revenue</option>
+                                <option value="margin">Sort by Margin</option>
                             </select>
                         </div>
                     </div>
