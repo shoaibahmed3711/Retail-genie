@@ -115,7 +115,7 @@ const JoinSection = () => {
                 </div>
 
                 {/* Retail Buyers Section */}
-                <div className="flex md:flex-row flex-col items-center justify-between gap-16">
+                <div className="flex md:flex-row flex-col items-center justify-between gap-16 mb-24">
                     <div className="relative order-2 lg:order-1">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-200 to-blue-100 rounded-3xl transform -rotate-3"></div>
                         <img
