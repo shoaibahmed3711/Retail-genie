@@ -10,7 +10,7 @@ import AdminSidebar from './components/adminSidebar'
 
 // authentication
 import SignIn from './auth/sign-in/sign-in'
-
+import Onboarding from './auth/onboarding/onboarding'
 // Brand owner panel
 import BrandOwnerOverview from './pages/ownerPanel/overview/overview'
 import MyBrand from './pages/ownerPanel/my-brand/my-brand'
@@ -47,8 +47,24 @@ import AdminSettings from './pages/panels/admin/settings/settings'
 // pages
 import Home from './pages/home/home'
 import Pricing from './pages/pricing/Pricing'
+import Contact from './pages/contact/contact'
+import BrandOwnerpage from './pages/brand-owner/brand-owner'
+import BrandManagerPage from './pages/brand-manager/brand-manager'
+import BuyerPage from './pages/buyer/buyer'
+
 const router = createBrowserRouter([
-  
+  {
+    path: "/BrandOwner",
+    element: <><Header /><BrandOwnerpage /><Footer /></>,
+  },
+  {
+    path: "/BrandManager",
+    element: <><Header /><BrandManagerPage /><Footer /></>,
+  },
+  {
+    path: "/Buyer",
+    element: <><Header /><BuyerPage /><Footer /></>,
+  },
   {
     path: "/",
     element: <><Header /><Home /><Footer /></>,
@@ -56,6 +72,14 @@ const router = createBrowserRouter([
   {
     path: "/pricing",
     element: <><Header /><Pricing /><Footer /></>,
+  },
+  {
+    path: "/Onboarding",
+    element: <><Onboarding /></>,
+  },
+  {
+    path: "/contact",
+    element: <><Header /><Contact /><Footer /></>,
   },
 
   // Buyer Dashboard

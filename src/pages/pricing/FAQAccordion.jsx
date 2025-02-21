@@ -54,7 +54,7 @@ export default function FAQAccordion() {
 
   return (
     <div className="border-b border-gray-300">
-    <div className="max-w-3xl mx-auto  py-12">
+    <div className="max-w-7xl mx-auto  py-12">
       <h1 className="text-3xl font-bold text-center mb-8">Questions & answers</h1>
 
       <div className="space-y-1 ">

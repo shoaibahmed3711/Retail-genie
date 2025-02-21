@@ -10,9 +10,6 @@ import { motion } from "framer-motion";
 const PricingCards = () => {
   const [isYearly, setIsYearly] = useState(false);
 
-  const togglePricing = () => {
-    setIsYearly(!isYearly);
-  };
 
   const pricingData = [
     {
@@ -61,7 +58,7 @@ const PricingCards = () => {
     },
     {
       name: "Business",
-      icon: <HiOutlineBuildingOffice className="text-3xl text-purple-500" />,
+      icon: <HiOutlineBuildingOffice className="text-3xl text-blue-500" />,
       monthlyPrice: "99",
       yearlyPrice: "82",
       description: "For multiple brand management",
@@ -88,8 +85,8 @@ const PricingCards = () => {
     },
     {
       name: "Enterprise",
-      icon: <HiOutlineBuildingOffice2 className="text-3xl text-indigo-500" />,
-      specialIcon: <BiSolidMessageRounded className="text-5xl text-indigo-500" />,
+      icon: <HiOutlineBuildingOffice2 className="text-3xl text-blue-500" />,
+      specialIcon: <BiSolidMessageRounded className="text-5xl text-blue-500" />,
       monthlyPrice: null,
       yearlyPrice: null,
       description: "For large-scale operations",
@@ -116,25 +113,13 @@ const PricingCards = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-16">
+    <div className="container-fluid px-4 py-16">
       {/* Header Section */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
-        <div className="flex justify-center items-center gap-4">
-          <span className="text-gray-600">Monthly</span>
-          <div className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={isYearly}
-              onChange={togglePricing}
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-          </div>
-          <span className="text-gray-600">
-            Yearly <span className="text-blue-500 font-semibold">Save 20%</span>
-          </span>
-        </div>
+      <div className="text-center mb-24">
+        <h2 className="text-[28px] font-bold bg-gradient-to-br from-blue-600 to-blue-800 bg-clip-text text-transparent mb-6">
+          Choose Your Plan
+        </h2>
+        <div className="w-32 h-1 bg-gradient-to-br from-blue-600 to-blue-800 mx-auto rounded-full"></div>
       </div>
 
       {/* Pricing Cards */}

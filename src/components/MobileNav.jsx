@@ -12,28 +12,6 @@ const MobileNav = () => {
     setActiveItem(item)
   }
 
-  const dropdownContent = {
-    services: ["Core Strengths", "PPP"],
-    investor: [
-      "NSDL eVoting System",
-      "Annual Reports",
-      "Annual Return",
-      "Buyback 2023",
-      "Buyback 2024",
-      "Financial Results",
-      "Corporate Details",
-    ],
-    compliance: [
-      "Compliance Certificate",
-      "PCS Certificate",
-      "DP Regulations",
-      "Policy",
-      "Notice",
-      "AGM",
-      "AGM Inspection Documents 2022-23",
-    ],
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
