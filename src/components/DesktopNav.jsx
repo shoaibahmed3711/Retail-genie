@@ -84,12 +84,18 @@ const DesktopNav = () => {
           </ul>
 
           {/* Sign In Button */}
-          <div className="mr-4">
+          <div className="flex flex-row gap-3 items-center">
             <Link
-              to="/SignIn"
+              to="/login"
               className="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:shadow-lg transform hover:-translate-y-0.5"
             >
-              Sign In
+              Login
+            </Link>
+            <Link
+              to="/Signup"
+              className="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:shadow-lg transform hover:-translate-y-0.5"
+            >
+              Sign up
             </Link>
           </div>
         </header>
