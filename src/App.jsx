@@ -18,6 +18,7 @@ import Onboarding from './auth/onboarding/onboarding'
 import VerificationCode from './auth/validation/validation'
 import VerifyEmail from './auth/VerifyEmail/VerifyEmail'
 import ResetPassword from './auth/ResetPassword/ResetPassword'
+import ForgotPassword from './auth/ForgotPassword/ForgotPassword'
 
 // Brand owner panel
 import BrandOwnerOverview from './pages/ownerPanel/overview/overview'
@@ -220,6 +221,10 @@ const router = createBrowserRouter([
       {
         path: "/ResetPassword",
         element: <><ResetPassword /></>,
+      },
+      {
+        path: "/ForgotPassword",
+        element: <><ForgotPassword /></>,
       },
     ]
   }

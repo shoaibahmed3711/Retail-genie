@@ -183,10 +183,10 @@ const Login = () => {
 
   return (
     <AuthLayout title="Join Us" description="Create an account to start exploring our platform and all its features." >
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-center ">
         <div className="w-full max-w-md space-y-8">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
               Sign in to your account
             </h2>
             {location.state?.message && (
@@ -216,8 +216,8 @@ const Login = () => {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4 rounded-md shadow-sm">
               <div>
-                <label htmlFor="email" className="sr-only">
-                  Email address
+                <label htmlFor="email" className="block mb-2 text-sm font-medium text-white">
+                  Email:
                 </label>
                 <input
                   id="email"
@@ -227,7 +227,7 @@ const Login = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className={`relative block w-full appearance-none rounded-md border ${errors.email ? 'border-red-300' : 'border-gray-300'
-                    } px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm`}
+                    } px-3 py-2 text-white placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm`}
                   placeholder="Email address"
                 />
                 {errors.email && (
@@ -236,8 +236,8 @@ const Login = () => {
               </div>
 
               <div className="relative">
-                <label htmlFor="password" className="sr-only">
-                  Password
+                <label htmlFor="password" className="block mb-2 text-sm font-medium text-white">
+                  Password:
                 </label>
                 <input
                   id="password"
@@ -247,7 +247,7 @@ const Login = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className={`relative block w-full appearance-none rounded-md border ${errors.password ? 'border-red-300' : 'border-gray-300'
-                    } px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm`}
+                    } px-3 py-2 text-white placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm`}
                   placeholder="Password"
                 />
                 <button
@@ -275,6 +275,7 @@ const Login = () => {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">
+
                 <input
                   id="remember-me"
                   name="remember-me"
@@ -283,13 +284,13 @@ const Login = () => {
                   onChange={() => setRememberMe(!rememberMe)}
                   className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-white">
                   Remember me
                 </label>
               </div>
 
               <div className="text-sm">
-                <Link to="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                <Link to="/ForgotPassword" className="font-medium text-indigo-600 hover:text-indigo-500">
                   Forgot your password?
                 </Link>
               </div>
@@ -314,7 +315,7 @@ const Login = () => {
             </div>
 
             <div className="text-center text-sm">
-              <span className="text-gray-600">Don't have an account? </span>
+              <span className="text-white">Don't have an account? </span>
               <Link to="/Signup" className="font-medium text-indigo-600 hover:text-indigo-500">
                 Sign up
               </Link>
