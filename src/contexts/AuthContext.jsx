@@ -1,13 +1,33 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
 export const AuthContext = createContext();
+
+// Add custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  
+  // Don't log in production
+  if (import.meta.env.DEV) {
+    // Using a less-frequent log to avoid console spam
+    if (Math.random() < 0.1) {
+      console.log('AuthContext: useAuth hook accessed');
+    }
+  }
+  
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [verificationEmail, setVerificationEmail] = useState(null);
+  
+  console.log('AuthContext: AuthProvider rendered');
 
   // Configure axios
   const apiClient = axios.create({
@@ -45,15 +65,20 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is already logged in on initial load
   useEffect(() => {
+    console.log('AuthContext: Checking session');
     const checkSession = async () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
+          console.log('AuthContext: Token found, validating session');
           const response = await apiClient.get('/auth/check-session');
           setCurrentUser(response.data.user);
+          console.log('AuthContext: User session validated');
+        } else {
+          console.log('AuthContext: No token found, user is not logged in');
         }
       } catch (error) {
-        console.error("Session check failed:", error.response?.data?.error || error.message);
+        console.error("AuthContext: Session check failed:", error.response?.data?.error || error.message);
         localStorage.removeItem('token');
       } finally {
         setLoading(false);
@@ -221,28 +246,31 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        currentUser,
-        loading,
-        error,
-        registerUser,
-        loginUser,
-        logoutUser,
-        verifyEmail,
-        resendVerificationCode,
-        forgotPassword,
-        resetPassword,
-        changePassword,
-        verificationEmail,
-        setVerificationEmail,
-        clearError
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  // Memoize value to prevent unnecessary re-renders
+  const value = React.useMemo(() => ({
+    currentUser,
+    loading,
+    error,
+    registerUser,
+    loginUser,
+    logoutUser,
+    verifyEmail,
+    resendVerificationCode,
+    forgotPassword,
+    resetPassword,
+    changePassword,
+    verificationEmail,
+    setVerificationEmail,
+    clearError
+  }), [
+    currentUser,
+    loading,
+    error,
+    verificationEmail
+    // Note: we don't need to include function dependencies as they're stable
+  ]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;

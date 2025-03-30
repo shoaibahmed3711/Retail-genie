@@ -1,549 +1,702 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  Settings, Edit, Trash2, Eye, EyeOff,
-  Plus, Search, Filter, Download, Upload,
-  CheckCircle, XCircle, ArrowUp, ArrowDown,
-  Save, X, MoreHorizontal, AlertTriangle
+  Globe,
+  Mail,
+  Phone,
+  Briefcase,
+  Save,
+  AlertCircle,
+  Upload,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  X,
+  Check,
+  Edit,
+  Info
 } from 'lucide-react';
 
 const BrandManagerBrands = () => {
-  // State for brand list
-  const [brands, setBrands] = useState([
-    { id: 1, name: 'EcoFresh', category: 'Organic Food', status: 'active', visibility: 'public', revenue: '$1.45M', growth: '+12%', products: 24 },
-    { id: 2, name: 'TechNova', category: 'Electronics', status: 'active', visibility: 'public', revenue: '$3.78M', growth: '+8%', products: 42 },
-    { id: 3, name: 'UrbanStyle', category: 'Fashion', status: 'active', visibility: 'private', revenue: '$2.12M', growth: '+5%', products: 78 },
-    { id: 4, name: 'HomeComfort', category: 'Home Goods', status: 'inactive', visibility: 'public', revenue: '$0.92M', growth: '-2%', products: 36 },
-    { id: 5, name: 'FitLife', category: 'Fitness', status: 'active', visibility: 'public', revenue: '$1.28M', growth: '+15%', products: 29 },
-  ]);
+  const [currentUser, setCurrentUser] = useState({ id: 'user123' }); // Simulated auth
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentBrand, setCurrentBrand] = useState(null);
+  const [editMode, setEditMode] = useState(false);
 
-  // State for search, filter and sort
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
-  const [filterStatus, setFilterStatus] = useState('all');
-
-  // State for form
-  const [showForm, setShowForm] = useState(false);
-  const [editingBrand, setEditingBrand] = useState(null);
-  const [formData, setFormData] = useState({
+  const [brandInfo, setBrandInfo] = useState({
     name: '',
-    category: '',
-    status: 'active',
-    visibility: 'public',
-    description: '',
+    tagline: '',
+    mission: '',
+    email: '',
+    phone: '',
     website: '',
-    contactEmail: '',
-    logo: null
+    address: '',
+    socialLinks: {
+      facebook: '',
+      twitter: '',
+      linkedin: '',
+      instagram: ''
+    }
   });
 
-  // Handle form input changes
+  // Store original data for cancel functionality
+  const [originalBrandInfo, setOriginalBrandInfo] = useState({});
+
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const [errors, setErrors] = useState({});
+  const [saveStatus, setSaveStatus] = useState('saved');
+  const [activeTab, setActiveTab] = useState('info');
+
+  // Function to handle logo upload to server
+  const uploadLogoToServer = async (file) => {
+    try {
+      if (!file) {
+        throw new Error('No file provided for upload');
+      }
+
+      // Create a FormData object for the logo upload
+      const formData = new FormData();
+      formData.append('logo', file);
+      formData.append('userId', currentUser?.id || 'unknown');
+      formData.append('brandId', currentBrand?._id || 'unknown');
+
+      // In a real implementation, you would have an API endpoint
+      // For this demo, we'll simulate a successful upload after a delay
+      console.log('Uploading file:', file.name);
+
+      // Simulate API response with a timeout
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // For a real implementation:
+      // const response = await fetch('https://your-api-endpoint.com/upload', {
+      //   method: 'POST',
+      //   body: formData,
+      //   headers: {
+      //     // Don't set Content-Type here, it will be set automatically with boundary for FormData
+      //     'Authorization': 'Bearer your-auth-token'
+      //   }
+      // });
+      // 
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(errorData.message || 'Upload failed');
+      // }
+      // 
+      // const data = await response.json();
+      // return data.logoUrl;
+
+      // For now, return a unique placeholder URL to simulate successful upload
+      const timestamp = new Date().getTime();
+      return `https://via.placeholder.com/150?text=Brand+Logo&time=${timestamp}`;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      throw error;
+    }
+  };
+
+  // Simulate data fetching
+  useEffect(() => {
+    const fetchBrandData = async () => {
+      try {
+        setLoading(true);
+
+        // Simulate API call with a timeout
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Sample data
+        const sampleBrand = {
+          _id: 'brand123',
+          name: 'Acme Corporation',
+          tagline: 'Innovation for everyone',
+          mission: 'To provide innovative solutions that help businesses and individuals thrive in a digital world.',
+          email: 'contact@acme.com',
+          phone: '+1 (555) 123-4567',
+          website: 'www.acme.com',
+          address: '123 Main Street, San Francisco, CA 94103',
+          logo: '',
+          socialLinks: {
+            facebook: 'https://facebook.com/acme',
+            twitter: 'https://twitter.com/acme',
+            linkedin: 'https://linkedin.com/company/acme',
+            instagram: 'https://instagram.com/acme'
+          }
+        };
+
+        setCurrentBrand(sampleBrand);
+
+        const brandData = {
+          name: sampleBrand.name || '',
+          tagline: sampleBrand.tagline || '',
+          mission: sampleBrand.mission || '',
+          email: sampleBrand.email || '',
+          phone: sampleBrand.phone || '',
+          website: sampleBrand.website || '',
+          address: sampleBrand.address || '',
+          socialLinks: sampleBrand.socialLinks || {
+            facebook: '',
+            twitter: '',
+            linkedin: '',
+            instagram: ''
+          }
+        };
+
+        setBrandInfo(brandData);
+        setOriginalBrandInfo(brandData);
+        setLogoPreview(sampleBrand.logo || null);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching brand data:", err);
+        setError("Failed to load brand data");
+        setLoading(false);
+      }
+    };
+
+    fetchBrandData();
+  }, []);
+
+  // Update saveStatus based on loading state
+  useEffect(() => {
+    if (loading) {
+      setSaveStatus('saving');
+    } else if (error) {
+      setSaveStatus('error');
+    } else if (currentBrand) {
+      setSaveStatus('saved');
+    }
+  }, [loading, error, currentBrand]);
+
+  // Auto-dismiss status messages
+  useEffect(() => {
+    if (saveStatus === 'saved' && !editMode) {
+      const timer = setTimeout(() => {
+        setSaveStatus('idle');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus, editMode]);
+
+  // Auto-dismiss error messages
+  useEffect(() => {
+    if (errors.general) {
+      const timer = setTimeout(() => {
+        setErrors(prev => {
+          const newErrors = {...prev};
+          delete newErrors.general;
+          return newErrors;
+        });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errors.general]);
+
+  // Auto-dismiss success messages
+  useEffect(() => {
+    if (errors.success) {
+      const timer = setTimeout(() => {
+        setErrors(prev => {
+          const newErrors = {...prev};
+          delete newErrors.success;
+          return newErrors;
+        });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errors.success]);
+
   const handleInputChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
-    if (type === 'file') {
-      setFormData({ ...formData, [name]: files[0] });
-    } else if (type === 'checkbox') {
-      setFormData({ ...formData, [name]: checked });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    const { name, value } = e.target;
+    setBrandInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    validateField(name, value);
   };
 
-  // Handle brand editing
-  const handleEditBrand = (brand) => {
-    setEditingBrand(brand);
-    setFormData({
-      name: brand.name,
-      category: brand.category,
-      status: brand.status,
-      visibility: brand.visibility,
-      description: brand.description || '',
-      website: brand.website || '',
-      contactEmail: brand.contactEmail || '',
-      logo: brand.logo || null
-    });
-    setShowForm(true);
-  };
-
-  // Handle brand creation/update
-  const handleSaveBrand = (e) => {
-    e.preventDefault();
-    if (editingBrand) {
-      // Update existing brand
-      setBrands(brands.map(brand =>
-        brand.id === editingBrand.id ? { ...brand, ...formData } : brand
-      ));
-    } else {
-      // Create new brand
-      const newBrand = {
-        id: brands.length + 1,
-        ...formData,
-        revenue: '$0',
-        growth: '0%',
-        products: 0
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check if file is an image
+      if (!file.type.match('image.*')) {
+        console.error('File is not an image');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        console.log("Image loaded successfully", event.target.result.substring(0, 50)); // Log preview
+        setLogoPreview(event.target.result);
       };
-      setBrands([...brands, newBrand]);
-    }
-
-    // Reset form
-    setShowForm(false);
-    setEditingBrand(null);
-    setFormData({
-      name: '',
-      category: '',
-      status: 'active',
-      visibility: 'public',
-      description: '',
-      website: '',
-      contactEmail: '',
-      logo: null
-    });
-  };
-
-  // Handle toggling brand status
-  const toggleBrandStatus = (id) => {
-    setBrands(brands.map(brand =>
-      brand.id === id ?
-        { ...brand, status: brand.status === 'active' ? 'inactive' : 'active' } :
-        brand
-    ));
-  };
-
-  // Handle toggling brand visibility
-  const toggleBrandVisibility = (id) => {
-    setBrands(brands.map(brand =>
-      brand.id === id ?
-        { ...brand, visibility: brand.visibility === 'public' ? 'private' : 'public' } :
-        brand
-    ));
-  };
-
-  // Handle brand deletion
-  const handleDeleteBrand = (id) => {
-    if (window.confirm('Are you sure you want to delete this brand?')) {
-      setBrands(brands.filter(brand => brand.id !== id));
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  // Filter and sort brands
-  const filteredBrands = brands
-    .filter(brand =>
-      (filterStatus === 'all' || brand.status === filterStatus) &&
-      (brand.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        brand.category.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-    .sort((a, b) => {
-      if (a[sortField] < b[sortField]) return sortDirection === 'asc' ? -1 : 1;
-      if (a[sortField] > b[sortField]) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
+  const handleSocialChange = (platform, value) => {
+    setBrandInfo(prev => ({
+      ...prev,
+      socialLinks: {
+        ...prev.socialLinks,
+        [platform]: value
+      }
+    }));
+  };
 
-  // Handle sort
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
+  const validateField = (name, value) => {
+    let newErrors = { ...errors };
+    switch (name) {
+      case 'name':
+        if (!value) newErrors.name = 'Brand name is required';
+        else delete newErrors.name;
+        break;
+      case 'email':
+        if (value && !/\S+@\S+\.\S+/.test(value)) newErrors.email = 'Invalid email format';
+        else delete newErrors.email;
+        break;
+      case 'phone':
+        if (value && !/^\+?[\d\s-]{8,}$/.test(value)) newErrors.phone = 'Invalid phone format';
+        else delete newErrors.phone;
+        break;
+      default:
+        break;
     }
+    setErrors(newErrors);
+  };
+
+  const saveBrandData = async () => {
+    try {
+      setSaveStatus('saving');
+      setLoading(true);
+      setErrors({});
+
+      if (!currentUser) {
+        setErrors(prev => ({ ...prev, general: 'You must be logged in to save brand data.' }));
+        setSaveStatus('error');
+        setLoading(false);
+        return;
+      }
+
+      if (!brandInfo.name) {
+        setErrors(prev => ({ ...prev, name: 'Brand name is required' }));
+        setSaveStatus('error');
+        setLoading(false);
+        return;
+      }
+
+      // Upload logo if a new one was selected
+      let logoUrl = logoPreview;
+      if (logoFile) {
+        try {
+          // Show uploading state
+          setSaveStatus('uploading');
+          logoUrl = await uploadLogoToServer(logoFile);
+          // Clear the file after successful upload
+          setLogoFile(null);
+        } catch (error) {
+          setErrors(prev => ({ ...prev, general: 'Failed to upload logo. Please try again.' }));
+          setSaveStatus('error');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Saving other brand data
+      setSaveStatus('saving');
+
+      // Simulate API call for saving the brand data
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update currentBrand with new data
+      setCurrentBrand({
+        ...currentBrand,
+        ...brandInfo,
+        logo: logoUrl
+      });
+
+      // Store the updated data as original for future cancellations
+      setOriginalBrandInfo({ ...brandInfo });
+      setLogoPreview(logoUrl);
+
+      setSaveStatus('saved');
+      setLoading(false);
+      setEditMode(false);
+
+      // Show success message
+      setErrors(prev => ({ ...prev, success: 'Brand profile updated successfully!' }));
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.success;
+          return newErrors;
+        });
+      }, 3000);
+    } catch (err) {
+      console.error("Error saving brand data:", err);
+      setErrors(prev => ({ ...prev, general: err.message || 'Failed to save brand data.' }));
+      setSaveStatus('error');
+      setLoading(false);
+    }
+  };
+
+  const enterEditMode = () => {
+    setEditMode(true);
+  };
+
+  const cancelEdit = () => {
+    // Revert to original data
+    setBrandInfo({ ...originalBrandInfo });
+    setEditMode(false);
+    setErrors({});
+  };
+
+  const getSocialIcon = (platform) => {
+    switch (platform) {
+      case 'facebook': return <Facebook size={18} />;
+      case 'twitter': return <Twitter size={18} />;
+      case 'linkedin': return <Linkedin size={18} />;
+      case 'instagram': return <Instagram size={18} />;
+      default: return null;
+    }
+  };
+
+  const renderField = (label, name, value, icon = null, type = "text") => {
+    return (
+      <div className="flex items-center">
+        {icon && <div className="text-gray-400 mr-2">{icon}</div>}
+        <div className="flex-1">
+          <label className="block text-md  font-medium text-gray-700 mb-1">
+            {label}
+          </label>
+          {editMode ? (
+            <>
+              <input
+                type={type}
+                name={name}
+                value={value}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                placeholder={`Enter ${label.toLowerCase()}`}
+              />
+              {errors[name] && (
+                <p className="mt-1 text-md  text-red-500">{errors[name]}</p>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-800">{value || 'Not specified'}</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSocialField = (platform, label, value, placeholder) => {
+    return (
+      <div className="flex items-center">
+        <div className="mr-2 text-gray-400">
+          {getSocialIcon(platform)}
+        </div>
+        <div className="flex-1">
+          <label className="block text-md  font-medium text-gray-700 mb-1">
+            {label}
+          </label>
+          {editMode ? (
+            <input
+              type="text"
+              value={value}
+              onChange={(e) => handleSocialChange(platform, e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+              placeholder={placeholder}
+            />
+          ) : (
+            <p className="text-gray-800">
+              {value ? (
+                <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  {value}
+                </a>
+              ) : (
+                'Not specified'
+              )}
+            </p>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="absolute overflow-y-auto bg-[#fbfbfb] h-screen p-8 top-0 w-full left-0 xl:left-[250px] xl:w-[calc(100%-250px)]">
-      <div className="container-fluid mx-auto">
+    <div className="absolute overflow-y-auto bg-[#fbfbfb] h-screen top-0 w-full left-0 xl:left-[250px] xl:w-[calc(100%-250px)]">
+      <div className="container-fluid mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-800">Brand Management</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage all your brands in one place</p>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-4 sm:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Add New Brand
-          </button>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="rounded-xl mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search brands by name or category..."
-                className="pl-10 w-full border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        <div className="bg-white rounded-lg border border-gray-200 mb-6 p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Brand Profile</h1>
+              <p className="text-gray-500">Manage your brand identity and information</p>
             </div>
-            <div className="flex gap-4">
-              <select
-                className="border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active Only</option>
-                <option value="inactive">Inactive Only</option>
-              </select>
-              <button className="flex items-center gap-2 border border-gray-300 rounded-lg py-2 px-4 hover:bg-gray-50">
-                <Filter className="w-5 h-5 text-gray-500" />
-                <span>More Filters</span>
-              </button>
-              <button className="hidden md:flex items-center gap-2 border border-gray-300 rounded-lg py-2 px-4 hover:bg-gray-50">
-                <Download className="w-5 h-5 text-gray-500" />
-                <span>Export</span>
-              </button>
-            </div>
-          </div>
-        </div>
 
-        {/* Brand Table */}
-        <div className="bg-white rounded-xl shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <button
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => handleSort('name')}
-                    >
-                      Brand Name
-                      {sortField === 'name' && (
-                        sortDirection === 'asc' ?
-                          <ArrowUp className="w-4 h-4" /> :
-                          <ArrowDown className="w-4 h-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <button
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => handleSort('category')}
-                    >
-                      Category
-                      {sortField === 'category' && (
-                        sortDirection === 'asc' ?
-                          <ArrowUp className="w-4 h-4" /> :
-                          <ArrowDown className="w-4 h-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Visibility
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <button
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => handleSort('revenue')}
-                    >
-                      Revenue
-                      {sortField === 'revenue' && (
-                        sortDirection === 'asc' ?
-                          <ArrowUp className="w-4 h-4" /> :
-                          <ArrowDown className="w-4 h-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <button
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => handleSort('growth')}
-                    >
-                      Growth
-                      {sortField === 'growth' && (
-                        sortDirection === 'asc' ?
-                          <ArrowUp className="w-4 h-4" /> :
-                          <ArrowDown className="w-4 h-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <button
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => handleSort('products')}
-                    >
-                      Products
-                      {sortField === 'products' && (
-                        sortDirection === 'asc' ?
-                          <ArrowUp className="w-4 h-4" /> :
-                          <ArrowDown className="w-4 h-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredBrands.map((brand) => (
-                  <tr key={brand.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                          {brand.logo ?
-                            <img src={brand.logo} alt={brand.name} className="h-10 w-10 rounded-full" /> :
-                            <span className="text-gray-500 font-medium">{brand.name.charAt(0)}</span>
-                          }
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{brand.name}</div>
-                          <div className="text-sm text-gray-500">{brand.website || 'No website'}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{brand.category}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => toggleBrandStatus(brand.id)}
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${brand.status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                          }`}
-                      >
-                        {brand.status === 'active' ?
-                          <CheckCircle className="w-4 h-4 mr-1" /> :
-                          <XCircle className="w-4 h-4 mr-1" />
-                        }
-                        {brand.status.charAt(0).toUpperCase() + brand.status.slice(1)}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => toggleBrandVisibility(brand.id)}
-                        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-                      >
-                        {brand.visibility === 'public' ?
-                          <><Eye className="w-4 h-4 mr-1" /> Public</> :
-                          <><EyeOff className="w-4 h-4 mr-1" /> Private</>
-                        }
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {brand.revenue}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center text-sm font-medium ${brand.growth.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                        {brand.growth.startsWith('+') ?
-                          <ArrowUp className="w-4 h-4 mr-1" /> :
-                          <ArrowDown className="w-4 h-4 mr-1" />
-                        }
-                        {brand.growth}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {brand.products}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end items-center space-x-3">
-                        <button
-                          onClick={() => handleEditBrand(brand)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteBrand(brand.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                        <div className="relative group">
-                          <button className="text-gray-600 hover:text-gray-900">
-                            <MoreHorizontal className="w-5 h-5" />
-                          </button>
-                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block">
-                            <div className="py-1">
-                              <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">View Details</a>
-                              <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Duplicate Brand</a>
-                              <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Generate Report</a>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {filteredBrands.length === 0 && (
-                  <tr>
-                    <td colSpan="8" className="px-6 py-10 text-center text-gray-500">
-                      <div className="flex flex-col items-center">
-                        <AlertTriangle className="w-10 h-10 text-gray-400 mb-4" />
-                        <p className="text-lg font-medium">No brands found</p>
-                        <p className="text-sm mt-1">Try adjusting your search or filter to find what you're looking for.</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing <span className="font-medium">{filteredBrands.length}</span> of <span className="font-medium">{brands.length}</span> brands
-              </div>
-              <div className="flex gap-2">
-                <button className="border border-gray-300 rounded px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Previous
-                </button>
-                <button className="border border-gray-300 rounded px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Add/Edit Brand Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {editingBrand ? 'Edit Brand' : 'Add New Brand'}
-                </h3>
+            <div className="flex items-center gap-3">
+              {!editMode ? (
                 <button
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingBrand(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-500"
+                  onClick={enterEditMode}
+                  className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6" />
+                  <Edit size={18} className="mr-2" />
+                  Edit Profile
                 </button>
-              </div>
-              <form onSubmit={handleSaveBrand} className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">Brand Name *</label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        required
-                        className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category *</label>
-                      <input
-                        type="text"
-                        id="category"
-                        name="category"
-                        required
-                        className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="website" className="block text-sm font-medium text-gray-700">Website URL</label>
-                      <input
-                        type="url"
-                        id="website"
-                        name="website"
-                        className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        value={formData.website}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700">Contact Email</label>
-                      <input
-                        type="email"
-                        id="contactEmail"
-                        name="contactEmail"
-                        className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        value={formData.contactEmail}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="logo" className="block text-sm font-medium text-gray-700">Brand Logo</label>
-                    <div className="mt-1 flex items-center">
-                      <div className="flex-shrink-0 h-16 w-16 bg-gray-100 rounded-md overflow-hidden">
-                        {formData.logo ? (
-                          <img
-                            src={formData.logo instanceof File ? URL.createObjectURL(formData.logo) : formData.logo}
-                            alt="Brand logo preview"
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                            <span className="text-gray-400">Logo</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="ml-4 relative">
-                        <button
-                          type="button"
-                          className="bg-white py-2 px-3 border border-gray-300 rounded-md  text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          Change
-                        </button>
-                        <input
-                          type="file"
-                          id="logo"
-                          name="logo"
-                          accept="image/*"
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    rows="3"
-                    className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                  ></textarea>
-                </div>
-
-                <div className="mt-6 flex justify-end space-x-3">
+              ) : (
+                <>
                   <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingBrand(null);
-                    }}
-                    className="bg-white py-2 px-4 border border-gray-300 rounded-md  text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    onClick={cancelEdit}
+                    className="inline-flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
                   <button
-                    type="submit"
-                    className="bg-blue-600 py-2 px-4 border border-transparent rounded-md  text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    onClick={saveBrandData}
+                    className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    disabled={loading}
                   >
-                    {editingBrand ? 'Update Brand' : 'Create Brand'}
+                    <Save size={18} className="mr-2" />
+                    {loading ? 'Saving...' : 'Save Changes'}
                   </button>
-                </div>
-              </form>
+                </>
+              )}
             </div>
           </div>
-        )}
+
+          {/* Status indicator */}
+          {saveStatus === 'saved' && !editMode && (
+            <div className="fixed top-[90%] right-[2%] p-4 rounded-lg bg-white shadow-md flex items-center text-green-700 transition-opacity duration-300 ease-in-out">
+              <Check size={16} className="mr-1" />
+              <span className="text-md mr-28">All changes saved</span>
+            </div>
+          )}
+
+          {/* Success message */}
+          {errors.success && (
+            <div className="fixed top-[90%] right-[2%] p-4 rounded-lg bg-white shadow-md flex items-center text-green-700 transition-opacity duration-300 ease-in-out">
+              <Check size={18} className="mr-2 text-green-600" />
+              <span>{errors.success}</span>
+            </div>
+          )}
+
+          {/* Error display */}
+          {errors.general && (
+            <div className="fixed top-[90%] right-[2%] p-4 rounded-lg bg-white shadow-md flex items-center text-red-700 transition-opacity duration-300 ease-in-out">
+              <div className="flex items-center">
+                <AlertCircle size={18} className="mr-2 text-red-600" />
+                <span>{errors.general}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-lg border border-gray-200 mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex -mb-px">
+              <button
+                onClick={() => setActiveTab('info')}
+                className={`px-4 py-3 flex items-center border-b-2 font-medium text-md  ${activeTab === 'info'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+              >
+                <Info size={18} className="mr-2" />
+                Brand Information
+              </button>
+              <button
+                onClick={() => setActiveTab('social')}
+                className={`px-4 py-3 flex items-center border-b-2 font-medium text-md  ${activeTab === 'social'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+              >
+                <Globe size={18} className="mr-2" />
+                Social Media
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar with logo */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Brand Logo</h3>
+              <div className="flex flex-col items-center justify-center">
+                {logoPreview ? (
+                  <div className="relative group mb-4">
+                     <img 
+      src={logoPreview} 
+      alt="Brand Logo" 
+      className="w-32 h-32 object-contain bg-gray-100 rounded-lg border border-gray-200" 
+      onError={(e) => {
+        console.error("Image failed to load");
+        e.target.src = "https://via.placeholder.com/150"; // Fallback image
+      }}
+    />
+                    {editMode && (
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center pointer-events-none">
+                        <button
+                          onClick={() => fileInputRef.current.click()}
+                          className="absolute bottom-2 right-2 bg-white text-gray-800 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setLogoPreview(null);
+                            setLogoFile(null);
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <label className={`flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg ${editMode ? 'cursor-pointer hover:border-gray-400' : ''} mb-4`}
+                    onClick={editMode ? () => fileInputRef.current.click() : undefined}
+                  >
+                    <Upload size={24} className="text-gray-400 mb-2" />
+                    <span className="text-md  text-gray-500">
+                      {editMode ? 'Upload Logo' : 'No Logo'}
+                    </span>
+                  </label>
+                )}
+                {editMode && (
+                  <>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleLogoUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current.click()}
+                      className="text-md  text-blue-600 hover:text-blue-800"
+                    >
+                      {logoPreview ? 'Replace Logo' : 'Browse Files'}
+                    </button>
+                    <p className="mt-2 text-xs text-gray-500 text-center">
+                      Recommended: Square image, at least 250x250 pixels
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Main content area */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              {/* Brand Information Tab */}
+              {activeTab === 'info' && (
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-6">Brand Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-md  font-medium text-gray-700 mb-1">
+                        Brand Name *
+                      </label>
+                      {editMode ? (
+                        <>
+                          <input
+                            type="text"
+                            name="name"
+                            value={brandInfo.name}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                            placeholder="Enter brand name"
+                          />
+                          {errors.name && (
+                            <p className="mt-1 text-md  text-red-500">{errors.name}</p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-gray-800 font-medium">{brandInfo.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-md  font-medium text-gray-700 mb-1">
+                        Tagline
+                      </label>
+                      {editMode ? (
+                        <input
+                          type="text"
+                          name="tagline"
+                          value={brandInfo.tagline}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                          placeholder="Enter brand tagline"
+                        />
+                      ) : (
+                        <p className="text-gray-800">{brandInfo.tagline || 'Not specified'}</p>
+                      )}
+                    </div>
+
+                    {renderField('Email', 'email', brandInfo.email, <Mail size={18} />, 'email')}
+                    {renderField('Phone', 'phone', brandInfo.phone, <Phone size={18} />)}
+                    {renderField('Website', 'website', brandInfo.website, <Globe size={18} />)}
+                    {renderField('Address', 'address', brandInfo.address, <Briefcase size={18} />)}
+
+                    <div className="md:col-span-2">
+                      <label className="block text-md  font-medium text-gray-700 mb-1">
+                        Mission Statement
+                      </label>
+                      {editMode ? (
+                        <textarea
+                          name="mission"
+                          value={brandInfo.mission}
+                          onChange={handleInputChange}
+                          rows={4}
+                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                          placeholder="Enter your brand's mission statement"
+                        />
+                      ) : (
+                        <p className="text-gray-800">{brandInfo.mission || 'Not specified'}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Social Media Tab */}
+              {activeTab === 'social' && (
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-6">Social Media Links</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[
+                      { platform: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/yourbrand' },
+                      { platform: 'twitter', label: 'Twitter', placeholder: 'https://twitter.com/yourbrand' },
+                      { platform: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/company/yourbrand' },
+                      { platform: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/yourbrand' }
+                    ].map(social => (
+                      <React.Fragment key={social.platform}>
+                        {renderSocialField(
+                          social.platform,
+                          social.label,
+                          brandInfo.socialLinks[social.platform],
+                          social.placeholder
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

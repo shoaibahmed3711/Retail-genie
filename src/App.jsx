@@ -2,6 +2,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 // contexts
 
 import { AuthProvider } from './contexts/AuthContext'
+import { ProductProvider } from './contexts/ProductContext'
+import { BrandProvider } from './contexts/BrandContext'
 
 // components
 import Header from './components/header'
@@ -16,16 +18,14 @@ import LoginPage from './auth/login/login'
 import SignUpPage from './auth/sign-up/sign-up'
 import Onboarding from './auth/onboarding/onboarding'
 import VerificationCode from './auth/validation/validation'
-import VerifyEmail from './auth/VerifyEmail/VerifyEmail'
 import ResetPassword from './auth/ResetPassword/ResetPassword'
 import ForgotPassword from './auth/ForgotPassword/ForgotPassword'
 
 // Brand owner panel
-import BrandOwnerOverview from './pages/ownerPanel/overview/overview'
-import MyBrand from './pages/ownerPanel/my-brand/my-brand'
-import Products from './pages/ownerPanel/products/products'
-import Analystics from './pages/ownerPanel/analytics/analytics'
-import Settings from './pages/ownerPanel/settings/settings'
+import BrandOwnerOverview from './pages/panels/ownerPanel/overview/overview'
+import MyBrand from './pages/panels/ownerPanel/my-brand/my-brand'
+import Products from './pages/panels/ownerPanel/products/products'
+import Settings from './pages/panels/ownerPanel/settings/settings'
 
 //Brand Manager dashboard
 import BrandManagerSettings from './pages/panels/brand-manager/settings/settings'
@@ -137,10 +137,6 @@ const router = createBrowserRouter([
         element: <><Navbar /><Products /></>,
       },
       {
-        path: "/Analytics",
-        element: <><Navbar /><Analystics /></>,
-      },
-      {
         path: "/Settings",
         element: <><Navbar /><Settings /></>,
       },
@@ -215,10 +211,6 @@ const router = createBrowserRouter([
         element: <><Onboarding /></>,
       },
       {
-        path: "/VerifyEmail",
-        element: <><VerifyEmail /></>,
-      },
-      {
         path: "/ResetPassword",
         element: <><ResetPassword /></>,
       },
@@ -233,7 +225,11 @@ const router = createBrowserRouter([
 function App() {
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <ProductProvider>
+        <BrandProvider>
+          <RouterProvider router={router} />
+        </BrandProvider>
+      </ProductProvider>
     </AuthProvider>
   )
 }

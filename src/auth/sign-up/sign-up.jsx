@@ -201,7 +201,7 @@ const Register = () => {
       });
 
       // Redirect to email verification page
-      navigate('/VerifyEmail');
+      navigate('/VerificationCode');
     } catch (err) {
       console.error('Registration error:', err);
     }

@@ -6,7 +6,6 @@ const navLinks = [
   { name: "Overview", path: "/Overview", icon: <Home size={20} /> },
   { name: "My Brand", path: "/MyBrand", icon: <DollarSign size={20} /> },
   { name: "Products", path: "/Products", icon: <Package size={20} /> },
-  { name: "Analytics", path: "/Analytics", icon: <BarChart size={20} /> },
   { name: "Settings", path: "/Settings", icon: <Settings size={20} /> },
 ];
 
