@@ -28,26 +28,6 @@ const BuyerFavourites = () => {
       dateAdded: "2025-02-10",
       description: "Eco-friendly fashion accessories brand"
     },
-    {
-      id: 2,
-      name: "Smart Watch Pro",
-      type: "product",
-      category: "Technology",
-      tags: ["wearables", "electronics"],
-      image: "https://m.media-amazon.com/images/I/71DsnuiX0lL._AC_SX466_.jpg",
-      dateAdded: "2025-02-12",
-      price: "$299.99"
-    },
-    {
-      id: 3,
-      name: "ArtisanCraft",
-      type: "brand",
-      category: "Handmade",
-      tags: ["artisan", "crafts"],
-      image: "https://m.media-amazon.com/images/I/71DsnuiX0lL._AC_SX466_.jpg",
-      dateAdded: "2025-02-15",
-      description: "Handcrafted luxury items"
-    }
   ];
 
   const categories = [

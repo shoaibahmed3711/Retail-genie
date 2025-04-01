@@ -17,9 +17,9 @@ const BrandOwnerOverview = () => {
 
   // Stats cards data
   const statsCards = [
-    { title: 'Total Revenue', value: '$48.2K', icon: <DollarSign className="w-6 h-6" />, trend: '+22%' },
-    { title: 'Total Posts', value: '2,450', icon: <MessageSquare className="w-6 h-6" />, trend: '+12%' },
-    { title: 'Engagement', value: '87.5K', icon: <TrendingUp className="w-6 h-6" />, trend: '+32%' }
+    { title: 'Total Revenue', value: '$0', icon: <DollarSign className="w-6 h-6" />, trend: '0%' },
+    { title: 'Total Posts', value: '0', icon: <MessageSquare className="w-6 h-6" />, trend: '0%' },
+    { title: 'Engagement', value: '0', icon: <TrendingUp className="w-6 h-6" />, trend: '0%' }
   ];
 
   return (
@@ -143,7 +143,7 @@ const BrandOwnerOverview = () => {
                 <circle
                   className="text-orange-500"
                   strokeWidth="10"
-                  strokeDasharray={`${89 * 2.83} ${100 * 2.83}`}
+                  strokeDasharray={`${0 * 2.83} ${100 * 2.83}`}
                   strokeLinecap="round"
                   stroke="currentColor"
                   fill="transparent"
@@ -153,7 +153,7 @@ const BrandOwnerOverview = () => {
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-2xl font-semibold">89%</span>
+                <span className="text-2xl font-semibold">0%</span>
               </div>
             </div>
           </div>
@@ -186,7 +186,7 @@ const BrandOwnerOverview = () => {
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-lg font-medium">Monthly Revenue</h3>
-                <p className="text-3xl font-bold mt-2">$5,280</p>
+                <p className="text-3xl font-bold mt-2">$0</p>
                 <div className="flex items-center gap-2 mt-4">
                   <Share2 className="w-4 h-4" />
                   <span className="text-sm">Share Report</span>

@@ -5,7 +5,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ProductProvider } from './contexts/ProductContext'
 import { BrandProvider } from './contexts/BrandContext'
 import { TeamProvider } from './contexts/TeamContext'
-
+import { BuyerProvider } from './contexts/BuyerContext'
+import { MeetingsProvider } from './contexts/MeetingContext'
 // components
 import Header from './components/header'
 import Footer from './components/footer'
@@ -220,15 +221,19 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <TeamProvider>
-      <AuthProvider>
-        <ProductProvider>
-          <BrandProvider>
-            <RouterProvider router={router} />
-          </BrandProvider>
-        </ProductProvider>
-      </AuthProvider>
-    </TeamProvider>
+    <MeetingsProvider>
+      <BuyerProvider>
+        <TeamProvider>
+          <AuthProvider>
+            <ProductProvider>
+              <BrandProvider>
+                <RouterProvider router={router} />
+              </BrandProvider>
+            </ProductProvider>
+          </AuthProvider>
+        </TeamProvider>
+      </BuyerProvider>
+    </MeetingsProvider>
   )
 }
 

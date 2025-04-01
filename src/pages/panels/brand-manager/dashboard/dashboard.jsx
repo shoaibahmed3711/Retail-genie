@@ -7,9 +7,9 @@ import {
 const BrandManagerDashboard = () => {
   // Aggregate Performance Metrics
   const performanceMetrics = [
-    { title: 'Total Sales', value: '$248.5K', icon: <DollarSign className="w-6 h-6" />, trend: '+12%', color: 'blue' },
-    { title: 'Market Share', value: '32.7%', icon: <PieChart className="w-6 h-6" />, trend: '+3.5%', color: 'green' },
-    { title: 'Brand Growth', value: '18.2%', icon: <TrendingUp className="w-6 h-6" />, trend: '+5.4%', color: 'purple' }
+    { title: 'Total Sales', value: '$0', icon: <DollarSign className="w-6 h-6" />, trend: '0%', color: 'blue' },
+    { title: 'Market Share', value: '0', icon: <PieChart className="w-6 h-6" />, trend: '0%', color: 'green' },
+    { title: 'Brand Growth', value: '0', icon: <TrendingUp className="w-6 h-6" />, trend: '0%', color: 'purple' }
   ];
 
   const recentActivities = [
@@ -104,7 +104,7 @@ const BrandManagerDashboard = () => {
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500">Progress</span>
-                  <span className="font-medium">78%</span>
+                  <span className="font-medium">0%</span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full mt-2">
                   <div className={`h-2 bg-${metric.color}-500 rounded-full w-[78%]`}></div>
@@ -154,7 +154,7 @@ const BrandManagerDashboard = () => {
           <div className="bg-white rounded-xl shadow p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-medium text-gray-800">Notifications</h3>
-              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">5 New</span>
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">0</span>
             </div>
             <div className="space-y-4">
               {notifications.map((notification, index) => (

@@ -1,85 +1,87 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search, Filter, Tag, DollarSign,
   Building, Package, Grid, List,
   Star, ChevronDown, X, Check
 } from 'lucide-react';
+import { useBuyer } from '../../../../contexts/BuyerContext';
 
 const BuyerProducts = () => {
   const [viewMode, setViewMode] = useState('grid');
-  const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [selectedFilters, setSelectedFilters] = useState({
-    categories: [],
-    brands: [],
-    availability: []
-  });
+  const [searchInput, setSearchInput] = useState('');
+  const [localPriceRange, setLocalPriceRange] = useState({ min: 0, max: 1000 });
+  
+  // Get all context values and functions
+  const { 
+    products, 
+    categories,
+    loading, 
+    filterByCategory,
+    filterByPriceRange,
+    searchProducts,
+    sortProducts,
+    priceRange,
+    selectedCategory,
+    resetFilters
+  } = useBuyer();
 
-  // Sample Categories
-  const categories = [
-    { id: 1, name: 'Electronics', count: 1234 },
-    { id: 2, name: 'Clothing', count: 856 },
-    { id: 3, name: 'Home & Garden', count: 654 },
-    { id: 4, name: 'Beauty', count: 432 },
-    { id: 5, name: 'Sports', count: 321 }
-  ];
+  // Track selected categories
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
-  // Sample Brands
-  const brands = [
-    { id: 1, name: 'TechPro', count: 156 },
-    { id: 2, name: 'EcoStyle', count: 123 },
-    { id: 3, name: 'HomeComfort', count: 98 },
-    { id: 4, name: 'FreshBeauty', count: 87 },
-    { id: 5, name: 'SportFlex', count: 76 }
-  ];
-
-  // Sample Products
-  const products = [
-    {
-      id: 1,
-      name: 'Wireless Headphones Pro',
-      brand: 'TechPro',
-      price: 199.99,
-      rating: 4.8,
-      reviews: 235,
-      category: 'Electronics',
-      image: 'https://m.media-amazon.com/images/I/71DsnuiX0lL._AC_SX466_.jpg',
-      inStock: true,
-      description: 'Premium wireless headphones with noise cancellation'
-    },
-    {
-      id: 2,
-      name: 'Eco-Friendly Water Bottle',
-      brand: 'EcoStyle',
-      price: 29.99,
-      rating: 4.6,
-      reviews: 189,
-      category: 'Sports',
-      image: 'https://m.media-amazon.com/images/I/71DsnuiX0lL._AC_SX466_.jpg',
-      inStock: true,
-      description: 'Sustainable stainless steel water bottle'
-    },
-    {
-      id: 3,
-      name: 'Smart Home Hub',
-      brand: 'HomeComfort',
-      price: 149.99,
-      rating: 4.7,
-      reviews: 156,
-      category: 'Electronics',
-      image: 'https://m.media-amazon.com/images/I/71DsnuiX0lL._AC_SX466_.jpg',
-      inStock: false,
-      description: 'Central control for all your smart home devices'
+  // Apply category filter when selections change
+  useEffect(() => {
+    if (selectedCategories.length === 0) {
+      // If no categories selected, clear the filter
+      filterByCategory('');
+    } else if (selectedCategories.length === 1) {
+      // If only one category selected, use that
+      filterByCategory(selectedCategories[0]);
     }
-  ];
+    // If multiple categories selected, we'd need to enhance our context to handle this
+    // For now, we'll just use the first selected category
+  }, [selectedCategories, filterByCategory]);
 
-  const toggleFilter = (type, value) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      [type]: prev[type].includes(value)
-        ? prev[type].filter(item => item !== value)
-        : [...prev[type], value]
-    }));
+  // Handle category toggle
+  const toggleCategory = (category) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  // Handle search submission
+  const handleSearch = () => {
+    searchProducts(searchInput);
+  };
+
+  // Handle price range application
+  const applyPriceRange = () => {
+    filterByPriceRange(localPriceRange.min, localPriceRange.max);
+  };
+
+  // Handle sort change
+  const handleSortChange = (e) => {
+    const value = e.target.value;
+    switch(value) {
+      case 'featured':
+        sortProducts('createdAt', 'desc');
+        break;
+      case 'price-asc':
+        sortProducts('price', 'asc');
+        break;
+      case 'price-desc':
+        sortProducts('price', 'desc');
+        break;
+      case 'newest':
+        sortProducts('createdAt', 'desc');
+        break;
+      case 'rating':
+        sortProducts('rating', 'desc');
+        break;
+      default:
+        sortProducts('createdAt', 'desc');
+    }
   };
 
   return (
@@ -99,10 +101,16 @@ const BuyerProducts = () => {
                 type="text"
                 placeholder="Search products by name, description, or keywords..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
               <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
             </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <button 
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={handleSearch}
+            >
               Search
             </button>
           </div>
@@ -119,18 +127,21 @@ const BuyerProducts = () => {
                 Categories
               </h3>
               <div className="space-y-2">
-                {categories.map(category => (
-                  <label key={category.id} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      onChange={() => toggleFilter('categories', category.id)}
-                      checked={selectedFilters.categories.includes(category.id)}
-                    />
-                    <span className="text-sm text-gray-600">{category.name}</span>
-                    <span className="text-xs text-gray-400">({category.count})</span>
-                  </label>
-                ))}
+                {categories && categories.length > 0 ? (
+                  categories.map((category, index) => (
+                    <label key={index} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        onChange={() => toggleCategory(category)}
+                        checked={selectedCategories.includes(category)}
+                      />
+                      <span className="text-sm text-gray-600">{category}</span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No categories available</p>
+                )}
               </div>
             </div>
 
@@ -146,93 +157,63 @@ const BuyerProducts = () => {
                     type="number"
                     placeholder="Min"
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                    value={priceRange[0]}
-                    onChange={e => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+                    value={localPriceRange.min}
+                    onChange={e => setLocalPriceRange({...localPriceRange, min: parseInt(e.target.value) || 0})}
                   />
                   <span className="text-gray-500">-</span>
                   <input
                     type="number"
                     placeholder="Max"
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                    value={priceRange[1]}
-                    onChange={e => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                    value={localPriceRange.max}
+                    onChange={e => setLocalPriceRange({...localPriceRange, max: parseInt(e.target.value) || 0})}
                   />
                 </div>
-                <button className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm">
+                <button 
+                  className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                  onClick={applyPriceRange}
+                >
                   Apply Range
                 </button>
               </div>
             </div>
 
-            {/* Brands Filter */}
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
-                <Building className="w-5 h-5 mr-2" />
-                Brands
-              </h3>
-              <div className="space-y-2">
-                {brands.map(brand => (
-                  <label key={brand.id} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      onChange={() => toggleFilter('brands', brand.id)}
-                      checked={selectedFilters.brands.includes(brand.id)}
-                    />
-                    <span className="text-sm text-gray-600">{brand.name}</span>
-                    <span className="text-xs text-gray-400">({brand.count})</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Availability Filter */}
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
-                <Package className="w-5 h-5 mr-2" />
-                Availability
-              </h3>
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    onChange={() => toggleFilter('availability', 'inStock')}
-                    checked={selectedFilters.availability.includes('inStock')}
-                  />
-                  <span className="text-sm text-gray-600">In Stock</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    onChange={() => toggleFilter('availability', 'preOrder')}
-                    checked={selectedFilters.availability.includes('preOrder')}
-                  />
-                  <span className="text-sm text-gray-600">Pre-order Available</span>
-                </label>
-              </div>
-            </div>
+            {/* Reset Filters Button */}
+            <button 
+              className="w-full bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm flex items-center justify-center"
+              onClick={resetFilters}
+            >
+              <X className="w-4 h-4 mr-2" /> Reset Filters
+            </button>
           </div>
 
           {/* Results Section */}
           <div className="flex-1">
             {/* Results Header */}
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h2 className="text-lg font-medium text-gray-800">Found 1,234 products</h2>
-                  <p className="text-sm text-gray-500">Showing results 1-12</p>
+                  <h2 className="text-lg font-medium text-gray-800">
+                    Found {loading ? '...' : products.length} products
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {selectedCategory && `Category: ${selectedCategory}`}
+                    {priceRange.min > 0 || priceRange.max < 1000 ? 
+                      ` • Price: $${priceRange.min} - $${priceRange.max}` : ''}
+                  </p>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                    <option>Sort by: Featured</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
-                    <option>Newest First</option>
-                    <option>Best Rating</option>
+                <div className="flex items-center space-x-4 w-full sm:w-auto">
+                  <select 
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto"
+                    onChange={handleSortChange}
+                  >
+                    <option value="featured">Sort by: Featured</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="newest">Newest First</option>
+                    <option value="rating">Best Rating</option>
                   </select>
-                  <div className="flex border border-gray-200 rounded-lg">
+                  <div className="hidden sm:flex border border-gray-200 rounded-lg">
                     <button
                       className={`p-2 ${viewMode === 'grid' ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
                       onClick={() => setViewMode('grid')}
@@ -250,48 +231,79 @@ const BuyerProducts = () => {
               </div>
             </div>
 
+            {/* Loading State */}
+            {loading && (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            )}
+
+            {/* No Results State */}
+            {!loading && products.length === 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+                <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-800 mb-2">No Products Found</h3>
+                <p className="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
+                <button 
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={resetFilters}
+                >
+                  Reset Filters
+                </button>
+              </div>
+            )}
+
             {/* Products Grid */}
-            <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-6'}>
-              {products.map(product => (
-                <div key={product.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                  <div className="relative">
-                    <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
-                    {!product.inStock && (
-                      <div className="absolute top-2 right-2 bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                        Out of Stock
+            {!loading && products.length > 0 && (
+              <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-6'}>
+                {products.map((product) => (
+                  <div key={product._id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="relative">
+                      <img 
+                        src={product.imageUrl || '/api/placeholder/300/300'} 
+                        alt={product.name} 
+                        className="w-full h-48 object-cover" 
+                      />
+                      {product.status !== 'In Stock' && (
+                        <div className="absolute top-2 right-2 bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                          {product.status}
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-800">{product.name}</h3>
+                          <p className="text-sm text-gray-500">{product.category}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                          <span className="text-sm font-medium">{product.rating || '0'}</span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-800">{product.name}</h3>
-                        <p className="text-sm text-gray-500">{product.brand}</p>
-                      </div>
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                        <span className="text-sm font-medium">{product.rating}</span>
-                        <span className="text-sm text-gray-500 ml-1">({product.reviews})</span>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-medium text-gray-900">
+                          ${product.discount > 0 
+                            ? product.discountedPrice 
+                            : product.price}
+                        </span>
+                        <button 
+                          className={`px-4 py-2 rounded-lg ${
+                            product.stock > 0 
+                              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          } transition-colors`}
+                          disabled={product.stock <= 0}
+                        >
+                          {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                        </button>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{product.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-medium text-gray-900">${product.price}</span>
-                      <button 
-                        className={`px-4 py-2 rounded-lg ${
-                          product.inStock 
-                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        } transition-colors`}
-                        disabled={!product.inStock}
-                      >
-                        {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-                      </button>
-                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

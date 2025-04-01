@@ -3,13 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, DollarSign, Package, Settings, Menu, X, ShieldHalf, UserPlus, ChartBarDecreasing, History } from "lucide-react";
 
 const navLinks = [
-    { name: "Overview", path: "/BuyerOverview", icon: <Home size={20} /> },
     { name: "Brands", path: "/BuyerBrands", icon: <DollarSign size={20} /> },
     { name: "Products", path: "/BuyerProducts", icon: <Package size={20} /> },
-    { name: "Favourite", path: "/BuyerFavourites", icon: <ShieldHalf size={20} /> },
-    { name: "Requests", path: "/BuyerRequests", icon: <UserPlus size={20} /> },
     { name: "Meeting", path: "/BuyerMeetings", icon: <ChartBarDecreasing size={20} /> },
-    { name: "History", path: "/BuyerHistory", icon: <History size={20} /> },
     { name: "Settings", path: "/BuyerSettings", icon: <Settings size={20} /> },
 ];
 

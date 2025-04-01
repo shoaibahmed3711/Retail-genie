@@ -1,42 +1,27 @@
-import React, { useState } from 'react';
-import {
-    Calendar,
-    Clock,
-    Video,
-    Phone,
-    Users,
-    Plus,
-    X,
-    ChevronLeft,
-    ChevronRight,
-    Building,
-    FileText,
-    MessageSquare
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, Video, Phone, Users, Plus, X, ChevronLeft, ChevronRight, Building, FileText, MessageSquare } from 'lucide-react';
+import { useMeetings } from '../../../../contexts/MeetingContext';
 
 const BuyerMeetings = () => {
+    const {
+        meetings,
+        upcomingMeetings,
+        pastMeetings,
+        loading,
+        error,
+        selectedDate,
+        setSelectedDate,
+        createMeeting,
+        updateMeeting,
+        deleteMeeting
+    } = useMeetings();
+
     const [showModal, setShowModal] = useState(false);
     const [activeTab, setActiveTab] = useState('upcoming');
-    const [meetings, setMeetings] = useState([
-        {
-            id: 1,
-            title: "Spring Collection Review",
-            brand: "EcoStyle Apparel",
-            date: "2025-02-20T14:00",
-            duration: "1 hour",
-            type: "video",
-            participants: ["Sarah Miller", "John Chen"],
-            status: "confirmed",
-            agenda: "Review new sustainable collection lineup",
-            notes: "Focus on pricing and minimum order quantities",
-            location: "Virtual Meeting Room 1"
-        }
-    ]);
-
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState(new Date());
     const [showSummaryModal, setShowSummaryModal] = useState(false);
     const [selectedMeeting, setSelectedMeeting] = useState(null);
+    const [displayedMeetings, setDisplayedMeetings] = useState([]);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -50,6 +35,15 @@ const BuyerMeetings = () => {
         location: '',
         notes: ''
     });
+
+    // Set displayed meetings based on active tab
+    useEffect(() => {
+        if (activeTab === 'upcoming') {
+            setDisplayedMeetings(upcomingMeetings);
+        } else {
+            setDisplayedMeetings(pastMeetings);
+        }
+    }, [activeTab, upcomingMeetings, pastMeetings]);
 
     const generateCalendar = (date) => {
         const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -80,17 +74,32 @@ const BuyerMeetings = () => {
         return calendar;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const newMeeting = {
-            id: meetings.length + 1,
-            ...formData,
-            date: `${formData.date}T${formData.time}`,
-            status: 'confirmed',
-            participants: formData.participants.split(',').map(p => p.trim())
-        };
-        setMeetings([...meetings, newMeeting]);
-        setShowModal(false);
+        try {
+            const meetingData = {
+                title: formData.title,
+                brand: formData.brand,
+                date: new Date(`${formData.date}T${formData.time}`),
+                duration: formData.duration,
+                type: formData.type,
+                participants: formData.participants.split(',').map(p => p.trim()),
+                agenda: formData.agenda,
+                location: formData.location,
+                notes: formData.notes,
+                status: 'confirmed'
+            };
+
+            await createMeeting(meetingData);
+            setShowModal(false);
+            resetForm();
+        } catch (err) {
+            console.error('Failed to create meeting:', err);
+            // You could add error handling UI here
+        }
+    };
+
+    const resetForm = () => {
         setFormData({
             title: '',
             brand: '',
@@ -109,6 +118,25 @@ const BuyerMeetings = () => {
         setSelectedMeeting(meeting);
         setShowSummaryModal(true);
     };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    };
+
+    const formatTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const getTodaysMeetings = () => {
+        const today = new Date();
+        return meetings.filter(meeting => {
+            const meetingDate = new Date(meeting.date);
+            return meetingDate.toDateString() === today.toDateString();
+        });
+    };
+
 
     const MeetingSummaryModal = () => (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
