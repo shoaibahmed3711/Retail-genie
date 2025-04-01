@@ -48,14 +48,53 @@ export const ProductProvider = ({ children }) => {
   const createProduct = useCallback(async (productData) => {
     setLoading(true);
     try {
-      const response = await apiClient.post('/products', productData);
-      setProducts((prevProducts) => [...prevProducts, response.data]);
+      let config = {};
+      
+      // If productData is FormData, we need to set the correct headers
+      if (productData instanceof FormData) {
+        config = {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        };
+      } else {
+        // Convert empty strings to undefined for required fields
+        const cleanedData = Object.fromEntries(
+          Object.entries(productData).map(([key, value]) => [
+            key,
+            value === '' ? undefined : value
+          ])
+        );
+        
+        // Ensure numeric fields are numbers
+        cleanedData.price = Number(cleanedData.price);
+        cleanedData.stock = Number(cleanedData.stock);
+        cleanedData.cogs = cleanedData.cogs ? Number(cleanedData.cogs) : 0;
+        cleanedData.discount = cleanedData.discount ? Number(cleanedData.discount) : 0;
+        cleanedData.margin = cleanedData.margin ? Number(cleanedData.margin) : 0;
+        
+        productData = cleanedData;
+      }
+  
+      const response = await apiClient.post('/products', productData, config);
+      console.log('Product created response:', response.data); // Add this log
+      
+      // Make sure we're getting the full product data with imageUrl from the server
+      const newProduct = response.data;
+      
+      // Explicitly check if we have an imageUrl in the response
+      if (!newProduct.imageUrl && productData instanceof FormData) {
+        console.warn('No imageUrl in response data, this might cause display issues');
+      }
+      
+      setProducts((prevProducts) => [...prevProducts, newProduct]);
       setError(null);
-      return response.data;
+      return newProduct;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create product');
-      console.error('Error creating product:', err);
-      return null;
+      const errorMessage = err.response?.data?.message || 'Failed to create product';
+      setError(errorMessage);
+      console.error('Error creating product:', errorMessage);
+      throw err; 
     } finally {
       setLoading(false);
     }
