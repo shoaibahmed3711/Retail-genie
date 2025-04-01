@@ -16,12 +16,32 @@ import {
   Edit,
   Info
 } from 'lucide-react';
+import { useBrand } from '../../../../contexts/BrandContext';
+import { useAuth } from '../../../../contexts/AuthContext';
+
+// Constants
+const TEMP_OWNER_ID = 'temp-owner-123';
 
 const BrandManagerBrands = () => {
-  const [currentUser, setCurrentUser] = useState({ id: 'user123' }); // Simulated auth
+  // Get currentUser from auth context, or create a temporary one if not available
+  const auth = useAuth();
+  const currentUser = auth?.currentUser || { id: TEMP_OWNER_ID };
+  
+  // Ensure we have an owner ID even if auth is not fully loaded
+  const ownerId = currentUser?.id || TEMP_OWNER_ID;
+  
+  const { 
+    currentBrand, 
+    loading: contextLoading, 
+    error: contextError, 
+    updateBrand, 
+    createBrand, 
+    uploadBrandLogo,
+    getMyBrand
+  } = useBrand();
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentBrand, setCurrentBrand] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
   const [brandInfo, setBrandInfo] = useState({
@@ -50,123 +70,66 @@ const BrandManagerBrands = () => {
   const [saveStatus, setSaveStatus] = useState('saved');
   const [activeTab, setActiveTab] = useState('info');
 
-  // Function to handle logo upload to server
-  const uploadLogoToServer = async (file) => {
-    try {
-      if (!file) {
-        throw new Error('No file provided for upload');
-      }
-
-      // Create a FormData object for the logo upload
-      const formData = new FormData();
-      formData.append('logo', file);
-      formData.append('userId', currentUser?.id || 'unknown');
-      formData.append('brandId', currentBrand?._id || 'unknown');
-
-      // In a real implementation, you would have an API endpoint
-      // For this demo, we'll simulate a successful upload after a delay
-      console.log('Uploading file:', file.name);
-
-      // Simulate API response with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // For a real implementation:
-      // const response = await fetch('https://your-api-endpoint.com/upload', {
-      //   method: 'POST',
-      //   body: formData,
-      //   headers: {
-      //     // Don't set Content-Type here, it will be set automatically with boundary for FormData
-      //     'Authorization': 'Bearer your-auth-token'
-      //   }
-      // });
-      // 
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   throw new Error(errorData.message || 'Upload failed');
-      // }
-      // 
-      // const data = await response.json();
-      // return data.logoUrl;
-
-      // For now, return a unique placeholder URL to simulate successful upload
-      const timestamp = new Date().getTime();
-      return `https://via.placeholder.com/150?text=Brand+Logo&time=${timestamp}`;
-    } catch (error) {
-      console.error('Error uploading logo:', error);
-      throw error;
-    }
-  };
-
-  // Simulate data fetching
+  // Load or create brand when component mounts
   useEffect(() => {
-    const fetchBrandData = async () => {
+    const initBrand = async () => {
       try {
-        setLoading(true);
-
-        // Simulate API call with a timeout
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Sample data
-        const sampleBrand = {
-          _id: 'brand123',
-          name: 'Acme Corporation',
-          tagline: 'Innovation for everyone',
-          mission: 'To provide innovative solutions that help businesses and individuals thrive in a digital world.',
-          email: 'contact@acme.com',
-          phone: '+1 (555) 123-4567',
-          website: 'www.acme.com',
-          address: '123 Main Street, San Francisco, CA 94103',
-          logo: '',
-          socialLinks: {
-            facebook: 'https://facebook.com/acme',
-            twitter: 'https://twitter.com/acme',
-            linkedin: 'https://linkedin.com/company/acme',
-            instagram: 'https://instagram.com/acme'
-          }
-        };
-
-        setCurrentBrand(sampleBrand);
-
-        const brandData = {
-          name: sampleBrand.name || '',
-          tagline: sampleBrand.tagline || '',
-          mission: sampleBrand.mission || '',
-          email: sampleBrand.email || '',
-          phone: sampleBrand.phone || '',
-          website: sampleBrand.website || '',
-          address: sampleBrand.address || '',
-          socialLinks: sampleBrand.socialLinks || {
-            facebook: '',
-            twitter: '',
-            linkedin: '',
-            instagram: ''
-          }
-        };
-
-        setBrandInfo(brandData);
-        setOriginalBrandInfo(brandData);
-        setLogoPreview(sampleBrand.logo || null);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching brand data:", err);
-        setError("Failed to load brand data");
-        setLoading(false);
+        if (contextLoading || currentBrand) {
+          console.log('MyBrand: Skipping brand load - already loading or brand exists');
+          return;
+        }
+        
+        console.log('MyBrand: Attempting to load brand data...');
+        await getMyBrand();
+        console.log('MyBrand: Brand data loaded successfully');
+      } catch (error) {
+        console.log('No brand found or error loading brand:', error.message);
+        // We'll handle creating a brand when the user saves their data
       }
     };
+    
+    initBrand();
+  }, [getMyBrand, currentBrand, contextLoading]);
 
-    fetchBrandData();
-  }, []);
+  // Update brandInfo when currentBrand changes
+  useEffect(() => {
+    if (currentBrand) {
+      console.log('MyBrand: Updating brandInfo from currentBrand');
+      const brandData = {
+        name: currentBrand.name || '',
+        tagline: currentBrand.tagline || '',
+        mission: currentBrand.mission || '',
+        email: currentBrand.email || '',
+        phone: currentBrand.phone || '',
+        website: currentBrand.website || '',
+        address: currentBrand.address || '',
+        socialLinks: currentBrand.socialLinks || {
+          facebook: '',
+          twitter: '',
+          linkedin: '',
+          instagram: ''
+        }
+      };
+
+      setBrandInfo(brandData);
+      setOriginalBrandInfo(brandData);
+      setLogoPreview(currentBrand.logo || null);
+    } else {
+      // If no current brand, enable edit mode automatically for new users
+      setEditMode(true);
+    }
+  }, [currentBrand]);
 
   // Update saveStatus based on loading state
   useEffect(() => {
-    if (loading) {
+    if (loading || contextLoading) {
       setSaveStatus('saving');
-    } else if (error) {
+    } else if (error || contextError) {
       setSaveStatus('error');
     } else if (currentBrand) {
       setSaveStatus('saved');
     }
-  }, [loading, error, currentBrand]);
+  }, [loading, error, currentBrand, contextLoading, contextError]);
 
   // Auto-dismiss status messages
   useEffect(() => {
@@ -220,17 +183,24 @@ const BrandManagerBrands = () => {
     if (file) {
       // Check if file is an image
       if (!file.type.match('image.*')) {
-        console.error('File is not an image');
+        setErrors(prev => ({ ...prev, general: 'Please upload an image file.' }));
         return;
       }
       
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, general: 'File size should be less than 5MB.' }));
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (event) => {
-        console.log("Image loaded successfully", event.target.result.substring(0, 50)); // Log preview
         setLogoPreview(event.target.result);
+        setLogoFile(file);
       };
       reader.onerror = (error) => {
         console.error("Error reading file:", error);
+        setErrors(prev => ({ ...prev, general: 'Failed to read the image file.' }));
       };
       reader.readAsDataURL(file);
     }
@@ -272,13 +242,8 @@ const BrandManagerBrands = () => {
       setSaveStatus('saving');
       setLoading(true);
       setErrors({});
-
-      if (!currentUser) {
-        setErrors(prev => ({ ...prev, general: 'You must be logged in to save brand data.' }));
-        setSaveStatus('error');
-        setLoading(false);
-        return;
-      }
+      
+      console.log('MyBrand: saveBrandData called');
 
       if (!brandInfo.name) {
         setErrors(prev => ({ ...prev, name: 'Brand name is required' }));
@@ -287,57 +252,55 @@ const BrandManagerBrands = () => {
         return;
       }
 
-      // Upload logo if a new one was selected
-      let logoUrl = logoPreview;
-      if (logoFile) {
-        try {
-          // Show uploading state
-          setSaveStatus('uploading');
-          logoUrl = await uploadLogoToServer(logoFile);
-          // Clear the file after successful upload
-          setLogoFile(null);
-        } catch (error) {
-          setErrors(prev => ({ ...prev, general: 'Failed to upload logo. Please try again.' }));
-          setSaveStatus('error');
-          setLoading(false);
-          return;
+      // Create FormData object
+      const formData = new FormData();
+      
+      // Add all brand info to FormData
+      Object.keys(brandInfo).forEach(key => {
+        if (key === 'socialLinks') {
+          // Convert socialLinks object to JSON string
+          formData.append(key, JSON.stringify(brandInfo[key]));
+        } else {
+          formData.append(key, brandInfo[key]);
         }
+      });
+
+      // Add owner ID
+      formData.append('owner', ownerId);
+
+      // Add logo file if exists
+      if (logoFile) {
+        formData.append('logo', logoFile);
       }
 
-      // Saving other brand data
-      setSaveStatus('saving');
-
-      // Simulate API call for saving the brand data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Update currentBrand with new data
-      setCurrentBrand({
-        ...currentBrand,
-        ...brandInfo,
-        logo: logoUrl
-      });
+      let updatedBrand;
+      
+      if (currentBrand) {
+        console.log('MyBrand: Updating existing brand with ID:', currentBrand._id);
+        updatedBrand = await updateBrand(currentBrand._id, formData);
+        setErrors(prev => ({ ...prev, success: 'Brand profile updated successfully!' }));
+      } else {
+        console.log('MyBrand: Creating new brand');
+        updatedBrand = await createBrand(formData);
+        setErrors(prev => ({ ...prev, success: 'Brand created successfully!' }));
+      }
 
       // Store the updated data as original for future cancellations
       setOriginalBrandInfo({ ...brandInfo });
-      setLogoPreview(logoUrl);
+      setLogoPreview(updatedBrand.logo);
+      setLogoFile(null);
 
       setSaveStatus('saved');
       setLoading(false);
       setEditMode(false);
 
-      // Show success message
-      setErrors(prev => ({ ...prev, success: 'Brand profile updated successfully!' }));
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors.success;
-          return newErrors;
-        });
-      }, 3000);
+      // Refresh brand data if we just created a new brand
+      if (!currentBrand) {
+        console.log('MyBrand: Refreshing brand data after create');
+        await getMyBrand();
+      }
     } catch (err) {
-      console.error("Error saving brand data:", err);
+      console.error("Error saving brand data:", err.message, err.response?.data);
       setErrors(prev => ({ ...prev, general: err.message || 'Failed to save brand data.' }));
       setSaveStatus('error');
       setLoading(false);
@@ -351,8 +314,16 @@ const BrandManagerBrands = () => {
   const cancelEdit = () => {
     // Revert to original data
     setBrandInfo({ ...originalBrandInfo });
+    setLogoPreview(currentBrand?.logo || null);
+    setLogoFile(null);
     setEditMode(false);
     setErrors({});
+    
+    // If there's no current brand, we should keep the form in edit mode
+    // since there's nothing to view in non-edit mode
+    if (!currentBrand) {
+      setEditMode(true);
+    }
   };
 
   const getSocialIcon = (platform) => {
@@ -436,8 +407,15 @@ const BrandManagerBrands = () => {
         <div className="bg-white rounded-lg border border-gray-200 mb-6 p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Brand Profile</h1>
-              <p className="text-gray-500">Manage your brand identity and information</p>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {currentBrand ? 'Brand Profile' : 'Create Your Brand'}
+              </h1>
+              <p className="text-gray-500">
+                {currentBrand 
+                  ? 'Manage your brand identity and information' 
+                  : 'Set up your brand identity to get started'
+                }
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -463,7 +441,7 @@ const BrandManagerBrands = () => {
                     disabled={loading}
                   >
                     <Save size={18} className="mr-2" />
-                    {loading ? 'Saving...' : 'Save Changes'}
+                    {loading ? 'Saving...' : currentBrand ? 'Save Changes' : 'Create Brand'}
                   </button>
                 </>
               )}
@@ -487,11 +465,11 @@ const BrandManagerBrands = () => {
           )}
 
           {/* Error display */}
-          {errors.general && (
+          {(errors.general || contextError) && (
             <div className="fixed top-[90%] right-[2%] p-4 rounded-lg bg-white shadow-md flex items-center text-red-700 transition-opacity duration-300 ease-in-out">
               <div className="flex items-center">
                 <AlertCircle size={18} className="mr-2 text-red-600" />
-                <span>{errors.general}</span>
+                <span>{errors.general || contextError}</span>
               </div>
             </div>
           )}
@@ -525,178 +503,185 @@ const BrandManagerBrands = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar with logo */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Brand Logo</h3>
-              <div className="flex flex-col items-center justify-center">
-                {logoPreview ? (
-                  <div className="relative group mb-4">
-                     <img 
-      src={logoPreview} 
-      alt="Brand Logo" 
-      className="w-32 h-32 object-contain bg-gray-100 rounded-lg border border-gray-200" 
-      onError={(e) => {
-        console.error("Image failed to load");
-        e.target.src = "https://via.placeholder.com/150"; // Fallback image
-      }}
-    />
-                    {editMode && (
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center pointer-events-none">
-                        <button
-                          onClick={() => fileInputRef.current.click()}
-                          className="absolute bottom-2 right-2 bg-white text-gray-800 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setLogoPreview(null);
-                            setLogoFile(null);
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <label className={`flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg ${editMode ? 'cursor-pointer hover:border-gray-400' : ''} mb-4`}
-                    onClick={editMode ? () => fileInputRef.current.click() : undefined}
-                  >
-                    <Upload size={24} className="text-gray-400 mb-2" />
-                    <span className="text-md  text-gray-500">
-                      {editMode ? 'Upload Logo' : 'No Logo'}
-                    </span>
-                  </label>
-                )}
-                {editMode && (
-                  <>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleLogoUpload}
-                      accept="image/*"
-                      className="hidden"
-                    />
-                    <button
-                      onClick={() => fileInputRef.current.click()}
-                      className="text-md  text-blue-600 hover:text-blue-800"
+        {/* Show loading state */}
+        {(contextLoading && !editMode) ? (
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <p className="text-lg text-gray-500">Loading your brand profile...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar with logo */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Brand Logo</h3>
+                <div className="flex flex-col items-center justify-center">
+                  {logoPreview ? (
+                    <div className="relative group mb-4">
+                      <img 
+                        src={logoPreview} 
+                        alt="Brand Logo" 
+                        className="w-32 h-32 object-contain bg-gray-100 rounded-lg border border-gray-200" 
+                        onError={(e) => {
+                          console.error("Image failed to load");
+                          e.target.src = "https://via.placeholder.com/150"; // Fallback image
+                        }}
+                      />
+                      {editMode && (
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center pointer-events-none">
+                          <button
+                            onClick={() => fileInputRef.current.click()}
+                            className="absolute bottom-2 right-2 bg-white text-gray-800 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setLogoPreview(null);
+                              setLogoFile(null);
+                            }}
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <label className={`flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg ${editMode ? 'cursor-pointer hover:border-gray-400' : ''} mb-4`}
+                      onClick={editMode ? () => fileInputRef.current.click() : undefined}
                     >
-                      {logoPreview ? 'Replace Logo' : 'Browse Files'}
-                    </button>
-                    <p className="mt-2 text-xs text-gray-500 text-center">
-                      Recommended: Square image, at least 250x250 pixels
-                    </p>
-                  </>
+                      <Upload size={24} className="text-gray-400 mb-2" />
+                      <span className="text-md  text-gray-500">
+                        {editMode ? 'Upload Logo' : 'No Logo'}
+                      </span>
+                    </label>
+                  )}
+                  {editMode && (
+                    <>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleLogoUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <button
+                        onClick={() => fileInputRef.current.click()}
+                        className="text-md  text-blue-600 hover:text-blue-800"
+                      >
+                        {logoPreview ? 'Replace Logo' : 'Browse Files'}
+                      </button>
+                      <p className="mt-2 text-xs text-gray-500 text-center">
+                        Recommended: Square image, at least 250x250 pixels
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Main content area */}
+            <div className="lg:col-span-3">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                {/* Brand Information Tab */}
+                {activeTab === 'info' && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-6">Brand Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-md  font-medium text-gray-700 mb-1">
+                          Brand Name *
+                        </label>
+                        {editMode ? (
+                          <>
+                            <input
+                              type="text"
+                              name="name"
+                              value={brandInfo.name}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                              placeholder="Enter brand name"
+                            />
+                            {errors.name && (
+                              <p className="mt-1 text-md  text-red-500">{errors.name}</p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-gray-800 font-medium">{brandInfo.name}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-md  font-medium text-gray-700 mb-1">
+                          Tagline
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="text"
+                            name="tagline"
+                            value={brandInfo.tagline}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                            placeholder="Enter brand tagline"
+                          />
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.tagline || 'Not specified'}</p>
+                        )}
+                      </div>
+
+                      {renderField('Email', 'email', brandInfo.email, <Mail size={18} />, 'email')}
+                      {renderField('Phone', 'phone', brandInfo.phone, <Phone size={18} />)}
+                      {renderField('Website', 'website', brandInfo.website, <Globe size={18} />)}
+                      {renderField('Address', 'address', brandInfo.address, <Briefcase size={18} />)}
+
+                      <div className="md:col-span-2">
+                        <label className="block text-md  font-medium text-gray-700 mb-1">
+                          Mission Statement
+                        </label>
+                        {editMode ? (
+                          <textarea
+                            name="mission"
+                            value={brandInfo.mission}
+                            onChange={handleInputChange}
+                            rows={4}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                            placeholder="Enter your brand's mission statement"
+                          />
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.mission || 'Not specified'}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Social Media Tab */}
+                {activeTab === 'social' && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-6">Social Media Links</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        { platform: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/yourbrand' },
+                        { platform: 'twitter', label: 'Twitter', placeholder: 'https://twitter.com/yourbrand' },
+                        { platform: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/company/yourbrand' },
+                        { platform: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/yourbrand' }
+                      ].map(social => (
+                        <React.Fragment key={social.platform}>
+                          {renderSocialField(
+                            social.platform,
+                            social.label,
+                            brandInfo.socialLinks[social.platform],
+                            social.placeholder
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
           </div>
-
-          {/* Main content area */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              {/* Brand Information Tab */}
-              {activeTab === 'info' && (
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6">Brand Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-md  font-medium text-gray-700 mb-1">
-                        Brand Name *
-                      </label>
-                      {editMode ? (
-                        <>
-                          <input
-                            type="text"
-                            name="name"
-                            value={brandInfo.name}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
-                            placeholder="Enter brand name"
-                          />
-                          {errors.name && (
-                            <p className="mt-1 text-md  text-red-500">{errors.name}</p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-gray-800 font-medium">{brandInfo.name}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-md  font-medium text-gray-700 mb-1">
-                        Tagline
-                      </label>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          name="tagline"
-                          value={brandInfo.tagline}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
-                          placeholder="Enter brand tagline"
-                        />
-                      ) : (
-                        <p className="text-gray-800">{brandInfo.tagline || 'Not specified'}</p>
-                      )}
-                    </div>
-
-                    {renderField('Email', 'email', brandInfo.email, <Mail size={18} />, 'email')}
-                    {renderField('Phone', 'phone', brandInfo.phone, <Phone size={18} />)}
-                    {renderField('Website', 'website', brandInfo.website, <Globe size={18} />)}
-                    {renderField('Address', 'address', brandInfo.address, <Briefcase size={18} />)}
-
-                    <div className="md:col-span-2">
-                      <label className="block text-md  font-medium text-gray-700 mb-1">
-                        Mission Statement
-                      </label>
-                      {editMode ? (
-                        <textarea
-                          name="mission"
-                          value={brandInfo.mission}
-                          onChange={handleInputChange}
-                          rows={4}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
-                          placeholder="Enter your brand's mission statement"
-                        />
-                      ) : (
-                        <p className="text-gray-800">{brandInfo.mission || 'Not specified'}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Social Media Tab */}
-              {activeTab === 'social' && (
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6">Social Media Links</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[
-                      { platform: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/yourbrand' },
-                      { platform: 'twitter', label: 'Twitter', placeholder: 'https://twitter.com/yourbrand' },
-                      { platform: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/company/yourbrand' },
-                      { platform: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/yourbrand' }
-                    ].map(social => (
-                      <React.Fragment key={social.platform}>
-                        {renderSocialField(
-                          social.platform,
-                          social.label,
-                          brandInfo.socialLinks[social.platform],
-                          social.placeholder
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

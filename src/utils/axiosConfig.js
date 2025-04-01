@@ -1,23 +1,19 @@
 import axios from 'axios';
 
-// Create axios instance with custom config
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000 // 10 second timeout
+  timeout: 10000 
 });
 
-// Simple request cache with timestamp for GET requests
 const requestCache = {};
-const CACHE_DURATION = 10000; // 10 seconds cache
+const CACHE_DURATION = 10000; 
 
-// Debug API calls in development
 if (import.meta.env.DEV) {
   apiClient.interceptors.request.use(request => {
     console.log('API Request:', request.method?.toUpperCase(), request.url);
-    // Log request body except for large FormData
     if (request.data && !(request.data instanceof FormData)) {
       console.log('Request data:', request.data);
     } else if (request.data instanceof FormData) {
@@ -49,7 +45,6 @@ if (import.meta.env.DEV) {
   );
 }
 
-// Clear cache for non-GET requests to the same endpoint
 const clearRelatedCache = (config) => {
   if (config.method !== 'get') {
     const url = config.url;

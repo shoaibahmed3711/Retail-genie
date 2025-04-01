@@ -5,93 +5,29 @@ import {
   Save, X, MoreHorizontal, CheckCircle, XCircle,
   Users, User, Building, Lock
 } from 'lucide-react';
+import { useTeam } from '../../../../contexts/TeamContext';
 
 const BrandManagerTeam = () => {
-  // State for team members list
-  const [teamMembers, setTeamMembers] = useState([
-    { 
-      id: 1, 
-      name: 'Sarah Johnson', 
-      email: 'sarah.j@example.com', 
-      phone: '+1 (555) 123-4567', 
-      role: 'Administrator', 
-      status: 'active',
-      joinDate: '2023-01-15',
-      assignedBrands: ['EcoFresh', 'FitLife'],
-      avatar: null
-    },
-    { 
-      id: 2, 
-      name: 'Michael Chen', 
-      email: 'michael.c@example.com', 
-      phone: '+1 (555) 987-6543', 
-      role: 'Brand Manager', 
-      status: 'active',
-      joinDate: '2023-02-20',
-      assignedBrands: ['TechNova', 'HomeComfort'],
-      avatar: null
-    },
-    { 
-      id: 3, 
-      name: 'Emily Rodriguez', 
-      email: 'emily.r@example.com', 
-      phone: '+1 (555) 234-5678', 
-      role: 'Content Creator', 
-      status: 'active',
-      joinDate: '2023-03-10',
-      assignedBrands: ['UrbanStyle'],
-      avatar: null
-    },
-    { 
-      id: 4, 
-      name: 'David Kim', 
-      email: 'david.k@example.com', 
-      phone: '+1 (555) 876-5432', 
-      role: 'Analyst', 
-      status: 'inactive',
-      joinDate: '2023-04-05',
-      assignedBrands: [],
-      avatar: null
-    },
-    { 
-      id: 5, 
-      name: 'Jessica Patel', 
-      email: 'jessica.p@example.com', 
-      phone: '+1 (555) 345-6789', 
-      role: 'Brand Manager', 
-      status: 'active',
-      joinDate: '2023-05-25',
-      assignedBrands: ['FitLife'],
-      avatar: null
-    }
-  ]);
+  // Access team context
+  const {
+    teamMembers,
+    loading,
+    error,
+    availableRoles,
+    availableBrands,
+    createTeamMember,
+    updateTeamMember,
+    deleteTeamMember,
+    toggleMemberStatus,
+    exportTeamMembersToCSV
+  } = useTeam();
 
-  // State for search, filter, and sort
+  // Local state for UI
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-
-  // Available roles
-  const availableRoles = [
-    'Administrator',
-    'Brand Manager',
-    'Content Creator',
-    'Analyst',
-    'Viewer'
-  ];
-
-  // Available brands
-  const availableBrands = [
-    'EcoFresh',
-    'TechNova',
-    'UrbanStyle',
-    'HomeComfort',
-    'FitLife'
-  ];
-
-  // State for form
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [formData, setFormData] = useState({
@@ -107,8 +43,15 @@ const BrandManagerTeam = () => {
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-    if (type === 'file') {
-      setFormData({ ...formData, [name]: files[0] });
+    
+    if (type === 'file' && files[0]) {
+      // For file uploads, convert to base64 string
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // Use the base64 string instead of the File object
+        setFormData(prev => ({ ...prev, [name]: reader.result }));
+      };
+      reader.readAsDataURL(files[0]);
     } else if (type === 'checkbox') {
       setFormData({ ...formData, [name]: checked });
     } else {
@@ -141,54 +84,60 @@ const BrandManagerTeam = () => {
   };
 
   // Handle team member creation/update
-  const handleSaveMember = (e) => {
+  const handleSaveMember = async (e) => {
     e.preventDefault();
     
-    if (editingMember) {
-      // Update existing member
-      setTeamMembers(teamMembers.map(member => 
-        member.id === editingMember.id ? {
-          ...member,
-          ...formData
-        } : member
-      ));
-    } else {
-      // Create new member
-      const newMember = {
-        id: teamMembers.length + 1,
-        ...formData,
-        joinDate: new Date().toISOString().split('T')[0]
-      };
-      setTeamMembers([...teamMembers, newMember]);
+    try {
+      if (editingMember) {
+        // Update existing member
+        await updateTeamMember(editingMember._id, formData);
+      } else {
+        // Create new member
+        await createTeamMember(formData);
+      }
+      
+      // Reset form
+      setShowForm(false);
+      setEditingMember(null);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        role: 'Brand Manager',
+        status: 'active',
+        assignedBrands: [],
+        avatar: null
+      });
+    } catch (err) {
+      // Error handling is done in the context
+      console.error('Form submission error:', err);
     }
-    
-    // Reset form
-    setShowForm(false);
-    setEditingMember(null);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      role: 'Brand Manager',
-      status: 'active',
-      assignedBrands: [],
-      avatar: null
-    });
-  };
-
-  // Handle toggling member status
-  const toggleMemberStatus = (id) => {
-    setTeamMembers(teamMembers.map(member => 
-      member.id === id ? 
-        {...member, status: member.status === 'active' ? 'inactive' : 'active'} : 
-        member
-    ));
   };
 
   // Handle member deletion
   const handleDeleteMember = (id) => {
     if (window.confirm('Are you sure you want to remove this team member?')) {
-      setTeamMembers(teamMembers.filter(member => member.id !== id));
+      deleteTeamMember(id);
+    }
+  };
+
+  // Handle toggling member status
+  const handleToggleStatus = (id) => {
+    toggleMemberStatus(id);
+  };
+
+  // Handle export to CSV
+  const handleExport = () => {
+    exportTeamMembersToCSV(filteredMembers);
+  };
+
+  // Handle sort
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
     }
   };
 
@@ -205,16 +154,6 @@ const BrandManagerTeam = () => {
       if (a[sortField] > b[sortField]) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
-
-  // Handle sort
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
 
   // Get role icon
   const getRoleIcon = (role) => {
@@ -251,7 +190,7 @@ const BrandManagerTeam = () => {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white  mb-6">
+        <div className="bg-white mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-grow">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -283,7 +222,10 @@ const BrandManagerTeam = () => {
                 <option value="active">Active Only</option>
                 <option value="inactive">Inactive Only</option>
               </select>
-              <button className="hidden md:flex items-center gap-2 border border-gray-300 rounded-lg py-2 px-4 hover:bg-gray-50">
+              <button 
+                className="hidden md:flex items-center gap-2 border border-gray-300 rounded-lg py-2 px-4 hover:bg-gray-50"
+                onClick={handleExport}
+              >
                 <Download className="w-5 h-5 text-gray-500" />
                 <span>Export</span>
               </button>
@@ -291,200 +233,218 @@ const BrandManagerTeam = () => {
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-10">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+            <p className="text-gray-600">Loading team members...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error! </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
         {/* Team Members Table */}
-        <div className="bg-white rounded-xl shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <button 
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => handleSort('name')}
-                    >
-                      Team Member
-                      {sortField === 'name' && (
-                        sortDirection === 'asc' ? 
-                        <span>↑</span> : 
-                        <span>↓</span>
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact Info
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <button 
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => handleSort('role')}
-                    >
-                      Role
-                      {sortField === 'role' && (
-                        sortDirection === 'asc' ? 
-                        <span>↑</span> : 
-                        <span>↓</span>
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <button 
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => handleSort('joinDate')}
-                    >
-                      Join Date
-                      {sortField === 'joinDate' && (
-                        sortDirection === 'asc' ? 
-                        <span>↑</span> : 
-                        <span>↓</span>
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Assigned Brands
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredMembers.map((member) => (
-                  <tr key={member.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                          {member.avatar ? 
-                            <img src={member.avatar} alt={member.name} className="h-10 w-10 rounded-full" /> : 
-                            <span className="text-gray-500 font-medium">{member.name.charAt(0)}</span>
-                          }
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{member.name}</div>
-                          <div className="text-xs text-gray-500">{
-                            member.id === 1 ? 'Owner' : `Member ID: ${member.id}`
-                          }</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 flex items-center mb-1">
-                        <Mail className="w-4 h-4 text-gray-400 mr-1" />
-                        {member.email}
-                      </div>
-                      {member.phone && (
-                        <div className="text-sm text-gray-500 flex items-center">
-                          <Phone className="w-4 h-4 text-gray-400 mr-1" />
-                          {member.phone}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-900">
-                        {getRoleIcon(member.role)}
-                        {member.role}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+        {!loading && !error && (
+          <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <button 
-                        onClick={() => toggleMemberStatus(member.id)}
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          member.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                        disabled={member.id === 1} // Cannot deactivate owner
+                        className="flex items-center gap-1 focus:outline-none"
+                        onClick={() => handleSort('name')}
                       >
-                        {member.status === 'active' ? 
-                          <CheckCircle className="w-4 h-4 mr-1" /> : 
-                          <XCircle className="w-4 h-4 mr-1" />
-                        }
-                        {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(member.joinDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {member.assignedBrands && member.assignedBrands.length > 0 ? (
-                          member.assignedBrands.map((brand) => (
-                            <span 
-                              key={brand}
-                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
-                            >
-                              {brand}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-gray-500 text-sm italic">No brands assigned</span>
+                        Team Member
+                        {sortField === 'name' && (
+                          sortDirection === 'asc' ? 
+                          <span>↑</span> : 
+                          <span>↓</span>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end items-center space-x-3">
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact Info
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button 
+                        className="flex items-center gap-1 focus:outline-none"
+                        onClick={() => handleSort('role')}
+                      >
+                        Role
+                        {sortField === 'role' && (
+                          sortDirection === 'asc' ? 
+                          <span>↑</span> : 
+                          <span>↓</span>
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button 
+                        className="flex items-center gap-1 focus:outline-none"
+                        onClick={() => handleSort('joinDate')}
+                      >
+                        Join Date
+                        {sortField === 'joinDate' && (
+                          sortDirection === 'asc' ? 
+                          <span>↑</span> : 
+                          <span>↓</span>
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Assigned Brands
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredMembers.map((member) => (
+                    <tr key={member._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
+                            {member.avatar ? 
+                              <img src={member.avatar} alt={member.name} className="h-10 w-10 rounded-full" /> : 
+                              <span className="text-gray-500 font-medium">{member.name.charAt(0)}</span>
+                            }
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{member.name}</div>
+                            <div className="text-xs text-gray-500">{
+                              member.isOwner ? 'Owner' : `Member ID: ${member._id}`
+                            }</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900 flex items-center mb-1">
+                          <Mail className="w-4 h-4 text-gray-400 mr-1" />
+                          {member.email}
+                        </div>
+                        {member.phone && (
+                          <div className="text-sm text-gray-500 flex items-center">
+                            <Phone className="w-4 h-4 text-gray-400 mr-1" />
+                            {member.phone}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center text-sm text-gray-900">
+                          {getRoleIcon(member.role)}
+                          {member.role}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <button 
-                          onClick={() => handleEditMember(member)}
-                          className="text-blue-600 hover:text-blue-900"
-                          disabled={member.id === 1 && !editingMember} // Can edit owner but not change role
+                          onClick={() => handleToggleStatus(member._id)}
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            member.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                          disabled={member.isOwner} // Cannot deactivate owner
                         >
-                          <Edit className="w-5 h-5" />
+                          {member.status === 'active' ? 
+                            <CheckCircle className="w-4 h-4 mr-1" /> : 
+                            <XCircle className="w-4 h-4 mr-1" />
+                          }
+                          {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
                         </button>
-                        <button 
-                          onClick={() => handleDeleteMember(member.id)}
-                          className="text-red-600 hover:text-red-900"
-                          disabled={member.id === 1} // Cannot delete owner
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                        <div className="relative group">
-                          <button className="text-gray-600 hover:text-gray-900">
-                            <MoreHorizontal className="w-5 h-5" />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(member.joinDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {member.assignedBrands && member.assignedBrands.length > 0 ? (
+                            member.assignedBrands.map((brand) => (
+                              <span 
+                                key={brand}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                              >
+                                {brand}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-500 text-sm italic">No brands assigned</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end items-center space-x-3">
+                          <button 
+                            onClick={() => handleEditMember(member)}
+                            className="text-blue-600 hover:text-blue-900"
+                            disabled={member.isOwner && member.role === 'Administrator'} // Can edit owner but not change role
+                          >
+                            <Edit className="w-5 h-5" />
                           </button>
-                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block">
-                            <div className="py-1">
-                              <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">View Activity</a>
-                              <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Reset Password</a>
-                              <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send Message</a>
+                          <button 
+                            onClick={() => handleDeleteMember(member._id)}
+                            className="text-red-600 hover:text-red-900"
+                            disabled={member.isOwner} // Cannot delete owner
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                          <div className="relative group">
+                            <button className="text-gray-600 hover:text-gray-900">
+                              <MoreHorizontal className="w-5 h-5" />
+                            </button>
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block">
+                              <div className="py-1">
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">View Activity</a>
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Reset Password</a>
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send Message</a>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {filteredMembers.length === 0 && (
-                  <tr>
-                    <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
-                      <div className="flex flex-col items-center">
-                        <AlertTriangle className="w-10 h-10 text-gray-400 mb-4" />
-                        <p className="text-lg font-medium">No team members found</p>
-                        <p className="text-sm mt-1">Try adjusting your search or filter to find what you're looking for.</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing <span className="font-medium">{filteredMembers.length}</span> of <span className="font-medium">{teamMembers.length}</span> team members
-              </div>
-              <div className="flex gap-2">
-                <button className="border border-gray-300 rounded px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Previous
-                </button>
-                <button className="border border-gray-300 rounded px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Next
-                </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredMembers.length === 0 && (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
+                        <div className="flex flex-col items-center">
+                          <AlertTriangle className="w-10 h-10 text-gray-400 mb-4" />
+                          <p className="text-lg font-medium">No team members found</p>
+                          <p className="text-sm mt-1">Try adjusting your search or filter to find what you're looking for.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{filteredMembers.length}</span> of <span className="font-medium">{teamMembers.length}</span> team members
+                </div>
+                <div className="flex gap-2">
+                  <button className="border border-gray-300 rounded px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Previous
+                  </button>
+                  <button className="border border-gray-300 rounded px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Add/Edit Team Member Form Modal */}
         {showForm && (
@@ -498,6 +458,15 @@ const BrandManagerTeam = () => {
                   onClick={() => {
                     setShowForm(false);
                     setEditingMember(null);
+                    setFormData({
+                      name: '',
+                      email: '',
+                      phone: '',
+                      role: 'Brand Manager',
+                      status: 'active',
+                      assignedBrands: [],
+                      avatar: null
+                    });
                   }}
                   className="text-gray-400 hover:text-gray-500"
                 >
@@ -514,7 +483,7 @@ const BrandManagerTeam = () => {
                         id="name"
                         name="name"
                         required
-                        className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         value={formData.name}
                         onChange={handleInputChange}
                       />
@@ -526,7 +495,7 @@ const BrandManagerTeam = () => {
                         id="email"
                         name="email"
                         required
-                        className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         value={formData.email}
                         onChange={handleInputChange}
                       />
@@ -537,7 +506,7 @@ const BrandManagerTeam = () => {
                         type="tel"
                         id="phone"
                         name="phone"
-                        className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         value={formData.phone}
                         onChange={handleInputChange}
                       />
@@ -564,7 +533,7 @@ const BrandManagerTeam = () => {
                         <div className="ml-4 relative">
                           <button
                             type="button"
-                            className="bg-white py-2 px-3 border border-gray-300 rounded-md  text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className="bg-white py-2 px-3 border border-gray-300 rounded-md text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                           >
                             Change
                           </button>
@@ -586,10 +555,10 @@ const BrandManagerTeam = () => {
                         id="role"
                         name="role"
                         required
-                        className="mt-1 block w-full border border-gray-300 rounded-md  py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         value={formData.role}
                         onChange={handleInputChange}
-                        disabled={editingMember && editingMember.id === 1} // Cannot change owner's role
+                        disabled={editingMember && editingMember.isOwner} // Cannot change owner's role
                       >
                         {availableRoles.map((role) => (
                           <option key={role} value={role}>{role}</option>
@@ -608,7 +577,7 @@ const BrandManagerTeam = () => {
                             checked={formData.status === 'active'}
                             onChange={handleInputChange}
                             className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
-                            disabled={editingMember && editingMember.id === 1} // Cannot change owner's status
+                            disabled={editingMember && editingMember.isOwner} // Cannot change owner's status
                           />
                           <span className="ml-2 text-sm text-gray-700">Active</span>
                         </label>
@@ -620,7 +589,7 @@ const BrandManagerTeam = () => {
                             checked={formData.status === 'inactive'}
                             onChange={handleInputChange}
                             className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
-                            disabled={editingMember && editingMember.id === 1} // Cannot change owner's status
+                            disabled={editingMember && editingMember.isOwner} // Cannot change owner's status
                           />
                           <span className="ml-2 text-sm text-gray-700">Inactive</span>
                         </label>
@@ -657,14 +626,23 @@ const BrandManagerTeam = () => {
                     onClick={() => {
                       setShowForm(false);
                       setEditingMember(null);
+                      setFormData({
+                        name: '',
+                        email: '',
+                        phone: '',
+                        role: 'Brand Manager',
+                        status: 'active',
+                        assignedBrands: [],
+                        avatar: null
+                      });
                     }}
-                    className="bg-white py-2 px-4 border border-gray-300 rounded-md  text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="bg-white py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-blue-600 py-2 px-4 border border-transparent rounded-md  text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="bg-blue-600 py-2 px-4 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     {editingMember ? 'Update Member' : 'Add Member'}
                   </button>

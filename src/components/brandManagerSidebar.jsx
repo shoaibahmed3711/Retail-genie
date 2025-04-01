@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, DollarSign, Package, Settings, Menu, X, ShieldHalf, UserPlus, ChartBarDecreasing } from "lucide-react";
+import { Home, DollarSign, Package, Settings, Menu, X, ShieldHalf, UserPlus } from "lucide-react";
 
 const navLinks = [
   { name: "Dashboard", path: "/brandManagerDashboard", icon: <Home size={20} /> },
@@ -8,7 +8,6 @@ const navLinks = [
   { name: "Products", path: "/brandManagerProducts", icon: <Package size={20} /> },
   { name: "Team Management", path: "/brandManagerTeam", icon: <ShieldHalf size={20} /> },
   { name: "Subscription", path: "/brandManagerSubscription", icon: <UserPlus size={20} /> },
-  { name: "Analytics", path: "/brandManagerAnalytics", icon: <ChartBarDecreasing size={20} /> },
   { name: "Settings", path: "/brandManagerSettings", icon: <Settings size={20} /> },
 ];
 

@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProductProvider } from './contexts/ProductContext'
 import { BrandProvider } from './contexts/BrandContext'
+import { TeamProvider } from './contexts/TeamContext'
 
 // components
 import Header from './components/header'
@@ -30,7 +31,6 @@ import Settings from './pages/panels/ownerPanel/settings/settings'
 //Brand Manager dashboard
 import BrandManagerSettings from './pages/panels/brand-manager/settings/settings'
 import BrandManagerTeam from './pages/panels/brand-manager/team/team'
-import BrandManagerAnalytics from './pages/panels/brand-manager/analytics/analytics'
 import BrandManagerDashboard from './pages/panels/brand-manager/dashboard/dashboard'
 import BrandManagerBrands from './pages/panels/brand-manager/brands/brands'
 import BrandManagerProducts from './pages/panels/brand-manager/products/products'
@@ -163,10 +163,6 @@ const router = createBrowserRouter([
         element: <><BrandManagerSidebar /><BrandManagerSubscription /></>,
       },
       {
-        path: "/brandManagerAnalytics",
-        element: <><BrandManagerSidebar /><BrandManagerAnalytics /></>,
-      },
-      {
         path: "/brandManagerSettings",
         element: <><BrandManagerSidebar /><BrandManagerSettings /></>,
       },
@@ -224,13 +220,15 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <AuthProvider>
-      <ProductProvider>
-        <BrandProvider>
-          <RouterProvider router={router} />
-        </BrandProvider>
-      </ProductProvider>
-    </AuthProvider>
+    <TeamProvider>
+      <AuthProvider>
+        <ProductProvider>
+          <BrandProvider>
+            <RouterProvider router={router} />
+          </BrandProvider>
+        </ProductProvider>
+      </AuthProvider>
+    </TeamProvider>
   )
 }
 

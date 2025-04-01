@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 
-const BrandManagerSettings = () => {
+const BrandManagerSetting = () => {
     const [activeTab, setActiveTab] = useState("account");
     const [darkMode, setDarkMode] = useState(false);
     const [notifications, setNotifications] = useState({
@@ -33,13 +33,6 @@ const BrandManagerSettings = () => {
         soundEffects: true,
         location: true,
         bandwidth: 'unlimited'
-    });
-
-    const [backupSchedule, setBackupSchedule] = useState('daily');
-    const [dataUsage, setDataUsage] = useState({
-        storage: '2.4GB',
-        bandwidth: '45GB/month',
-        lastBackup: '2024-02-12'
     });
 
     const handleInputChange = (e) => {
@@ -97,16 +90,6 @@ const BrandManagerSettings = () => {
         </button>
     );
 
-    const UsageCard = ({ title, value, icon: Icon }) => (
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-                <Icon className="h-5 w-5 text-blue-600" />
-                <h4 className="font-medium text-gray-900">{title}</h4>
-            </div>
-            <p className="text-2xl font-semibold text-gray-900">{value}</p>
-        </div>
-    );
-
     return (
         <div className="absolute overflow-y-auto bg-[#fbfbfb] h-screen p-8 top-0 w-full left-0 xl:left-[250px] xl:w-[calc(100%-250px)]">
             <div className=' container-fluid'>
@@ -122,7 +105,7 @@ const BrandManagerSettings = () => {
                     </div>
 
                     <div className="flex overflow-auto gap-4 mb-6">
-                        {['account', 'security', 'preferences', 'data', 'integrations'].map(tab => (
+                        {['account', 'security', 'preferences', 'integrations'].map(tab => (
                             <TabButton
                                 key={tab}
                                 active={activeTab === tab}
@@ -323,67 +306,6 @@ const BrandManagerSettings = () => {
                             </div>
                         )}
 
-                        {activeTab === "data" && (
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-3  gap-4">
-                                    <UsageCard
-                                        title="Storage Used"
-                                        value={dataUsage.storage}
-                                        icon={Upload}
-                                    />
-                                    <UsageCard
-                                        title="Bandwidth Usage"
-                                        value={dataUsage.bandwidth}
-                                        icon={Download}
-                                    />
-                                    <UsageCard
-                                        title="Last Backup"
-                                        value={dataUsage.lastBackup}
-                                        icon={Clock}
-                                    />
-                                </div>
-
-                                <div className="bg-white rounded-lg border border-gray-200">
-                                    <SettingItem
-                                        icon={Monitor}
-                                        title="Auto Backup"
-                                        description="Automatically backup your data"
-                                        action={
-                                            <Toggle
-                                                enabled={formData.autoBackup}
-                                                onChange={() => toggleSetting('autoBackup')}
-                                            />
-                                        }
-                                    />
-
-                                    <SettingItem
-                                        icon={Activity}
-                                        title="Data Saver"
-                                        description="Reduce data usage when on mobile networks"
-                                        action={
-                                            <Toggle
-                                                enabled={formData.dataSaver}
-                                                onChange={() => toggleSetting('dataSaver')}
-                                            />
-                                        }
-                                    />
-
-                                    <div className="p-4">
-                                        <h3 className="font-medium text-gray-900 mb-2">Backup Schedule</h3>
-                                        <select
-                                            value={backupSchedule}
-                                            onChange={(e) => setBackupSchedule(e.target.value)}
-                                            className="w-full p-2 border rounded-lg"
-                                        >
-                                            <option value="daily">Daily</option>
-                                            <option value="weekly">Weekly</option>
-                                            <option value="monthly">Monthly</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {activeTab === "integrations" && (
                             <div className="bg-white rounded-lg border border-gray-200">
                                 <div className="p-4">
@@ -417,4 +339,4 @@ const BrandManagerSettings = () => {
     );
 };
 
-export default BrandManagerSettings;
+export default BrandManagerSetting;
