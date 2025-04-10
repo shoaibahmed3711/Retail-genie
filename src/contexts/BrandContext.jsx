@@ -34,7 +34,7 @@ export const BrandProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await apiClient.get('/brands');
+      const response = await apiClient.get('/brand');
       setBrands(response.data);
       return response.data;
     } catch (error) {
@@ -91,17 +91,18 @@ export const BrandProvider = ({ children }) => {
       setCurrentBrand(response.data);
       return response.data;
     } catch (error) {
-      // Handle 404 differently - it might just mean there's no brand yet for this user
+      // Handle 404 differently - it just means there's no brand yet for this user
       if (error.response && error.response.status === 404) {
-        console.log('BrandContext: No brand found for this owner');
+        console.log('BrandContext: No brand found for this owner - expected for new users');
         setCurrentBrand(null);
         return null;
       }
       
+      // For other errors, we should show an error message
       const errorMessage = error.response?.data?.message || 'Failed to fetch your brand';
       console.error('BrandContext: Error in getMyBrand:', errorMessage);
       setError(errorMessage);
-      throw new Error(errorMessage);
+      throw error; // Re-throw so the component can handle it
     } finally {
       setLoading(false);
     }

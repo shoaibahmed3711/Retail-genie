@@ -14,10 +14,13 @@ import {
   X,
   Check,
   Edit,
-  Info
+  Info,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useBrand } from '../../../../contexts/BrandContext';
 import { useAuth } from '../../../../contexts/AuthContext';
+import COUNTRIES from '../../../../utils/countries';
 
 // Constants
 const TEMP_OWNER_ID = 'temp-owner-123';
@@ -57,7 +60,19 @@ const BrandManagerBrands = () => {
       twitter: '',
       linkedin: '',
       instagram: ''
-    }
+    },
+    // New business information fields
+    yearsInBusiness: 0,
+    isCanadianRegistered: false,
+    registeredCountry: '',
+    isManufacturedInCanada: false,
+    manufacturingCountry: '',
+    hasInternationalSourcing: false,
+    componentSources: [],
+    productCount: 0,
+    retailerLocationCount: 0,
+    isGS1Registered: false,
+    supportsEDI: false
   });
 
   // Store original data for cancel functionality
@@ -108,7 +123,19 @@ const BrandManagerBrands = () => {
           twitter: '',
           linkedin: '',
           instagram: ''
-        }
+        },
+        // New business information fields
+        yearsInBusiness: currentBrand.yearsInBusiness || 0,
+        isCanadianRegistered: currentBrand.isCanadianRegistered || false,
+        registeredCountry: currentBrand.registeredCountry || '',
+        isManufacturedInCanada: currentBrand.isManufacturedInCanada || false,
+        manufacturingCountry: currentBrand.manufacturingCountry || '',
+        hasInternationalSourcing: currentBrand.hasInternationalSourcing || false,
+        componentSources: currentBrand.componentSources || [],
+        productCount: currentBrand.productCount || 0,
+        retailerLocationCount: currentBrand.retailerLocationCount || 0,
+        isGS1Registered: currentBrand.isGS1Registered || false,
+        supportsEDI: currentBrand.supportsEDI || false
       };
 
       setBrandInfo(brandData);
@@ -216,6 +243,69 @@ const BrandManagerBrands = () => {
     }));
   };
 
+  // Handle boolean change (checkboxes)
+  const handleBooleanChange = (name, checked) => {
+    setBrandInfo(prev => ({
+      ...prev,
+      [name]: checked
+    }));
+  };
+
+  // Handle number change
+  const handleNumberChange = (name, value) => {
+    const numValue = parseInt(value, 10) || 0;
+    if (numValue >= 0) {
+      setBrandInfo(prev => ({
+        ...prev,
+        [name]: numValue
+      }));
+    }
+  };
+
+  // Handle country selection
+  const handleCountryChange = (name, value) => {
+    setBrandInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle component sources (add)
+  const addComponentSource = (component, country) => {
+    if (component && country) {
+      setBrandInfo(prev => ({
+        ...prev,
+        componentSources: [...prev.componentSources, { component, country }]
+      }));
+      return true; // Return success
+    }
+    return false; // Return failure
+  };
+
+  // Handle component sources (remove)
+  const removeComponentSource = (index) => {
+    setBrandInfo(prev => ({
+      ...prev,
+      componentSources: prev.componentSources.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Handle component sources (update)
+  const updateComponentSource = (index, component, country) => {
+    if (component && country) {
+      setBrandInfo(prev => {
+        const newSources = [...prev.componentSources];
+        newSources[index] = { component, country };
+        return {
+          ...prev,
+          componentSources: newSources
+        };
+      });
+      return true; // Return success
+    }
+    return false; // Return failure
+  };
+
   const validateField = (name, value) => {
     let newErrors = { ...errors };
     switch (name) {
@@ -257,9 +347,12 @@ const BrandManagerBrands = () => {
       
       // Add all brand info to FormData
       Object.keys(brandInfo).forEach(key => {
-        if (key === 'socialLinks') {
-          // Convert socialLinks object to JSON string
+        if (key === 'socialLinks' || key === 'componentSources') {
+          // Convert objects/arrays to JSON strings
           formData.append(key, JSON.stringify(brandInfo[key]));
+        } else if (typeof brandInfo[key] === 'boolean') {
+          // Convert boolean to string ('true' or 'false')
+          formData.append(key, brandInfo[key].toString());
         } else {
           formData.append(key, brandInfo[key]);
         }
@@ -273,6 +366,9 @@ const BrandManagerBrands = () => {
         formData.append('logo', logoFile);
       }
 
+      // Log the form data for debugging
+      console.log('MyBrand: Form data prepared');
+      
       let updatedBrand;
       
       if (currentBrand) {
@@ -301,7 +397,16 @@ const BrandManagerBrands = () => {
       }
     } catch (err) {
       console.error("Error saving brand data:", err.message, err.response?.data);
-      setErrors(prev => ({ ...prev, general: err.message || 'Failed to save brand data.' }));
+      
+      // More specific error message based on the error type
+      let errorMessage = 'Failed to save brand data.';
+      if (err.response && err.response.data && err.response.data.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setErrors(prev => ({ ...prev, general: errorMessage }));
       setSaveStatus('error');
       setLoading(false);
     }
@@ -499,6 +604,16 @@ const BrandManagerBrands = () => {
                 <Globe size={18} className="mr-2" />
                 Social Media
               </button>
+              <button
+                onClick={() => setActiveTab('business')}
+                className={`px-4 py-3 flex items-center border-b-2 font-medium text-md  ${activeTab === 'business'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+              >
+                <Briefcase size={18} className="mr-2" />
+                Business Details
+              </button>
             </nav>
           </div>
         </div>
@@ -675,6 +790,353 @@ const BrandManagerBrands = () => {
                           )}
                         </React.Fragment>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Business Details Tab */}
+                {activeTab === 'business' && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-6">Business Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Years in Business */}
+                      <div>
+                        <label className="block text-md font-medium text-gray-700 mb-1">
+                          Number of years in Business
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="number"
+                            min="0"
+                            value={brandInfo.yearsInBusiness}
+                            onChange={(e) => handleNumberChange('yearsInBusiness', e.target.value)}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                          />
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.yearsInBusiness || '0'}</p>
+                        )}
+                      </div>
+
+                      {/* Canadian Registered Company */}
+                      <div>
+                        <label className="block text-md font-medium text-gray-700 mb-1">
+                          Are you a Canadian Registered Company?
+                        </label>
+                        {editMode ? (
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={brandInfo.isCanadianRegistered}
+                              onChange={(e) => handleBooleanChange('isCanadianRegistered', e.target.checked)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-2">Yes</span>
+                          </div>
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.isCanadianRegistered ? 'Yes' : 'No'}</p>
+                        )}
+                      </div>
+
+                      {/* Country if not Canadian */}
+                      {(!brandInfo.isCanadianRegistered || !editMode) && (
+                        <div>
+                          <label className="block text-md font-medium text-gray-700 mb-1">
+                            Country of Registration
+                          </label>
+                          {editMode ? (
+                            <select
+                              value={brandInfo.registeredCountry}
+                              onChange={(e) => handleCountryChange('registeredCountry', e.target.value)}
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                            >
+                              <option value="">Select a country</option>
+                              {COUNTRIES.map(country => (
+                                <option key={country.code} value={country.name}>{country.name}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-gray-800">
+                              {brandInfo.isCanadianRegistered 
+                                ? 'Canada' 
+                                : (brandInfo.registeredCountry || 'Not specified')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Products Manufactured in Canada */}
+                      <div>
+                        <label className="block text-md font-medium text-gray-700 mb-1">
+                          Are your products manufactured in Canada?
+                        </label>
+                        {editMode ? (
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={brandInfo.isManufacturedInCanada}
+                              onChange={(e) => handleBooleanChange('isManufacturedInCanada', e.target.checked)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-2">Yes</span>
+                          </div>
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.isManufacturedInCanada ? 'Yes' : 'No'}</p>
+                        )}
+                      </div>
+
+                      {/* Manufacturing Country if not Canada */}
+                      {(!brandInfo.isManufacturedInCanada || !editMode) && (
+                        <div>
+                          <label className="block text-md font-medium text-gray-700 mb-1">
+                            Manufacturing Country
+                          </label>
+                          {editMode ? (
+                            <select
+                              value={brandInfo.manufacturingCountry}
+                              onChange={(e) => handleCountryChange('manufacturingCountry', e.target.value)}
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                            >
+                              <option value="">Select a country</option>
+                              {COUNTRIES.map(country => (
+                                <option key={country.code} value={country.name}>{country.name}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-gray-800">
+                              {brandInfo.isManufacturedInCanada 
+                                ? 'Canada' 
+                                : (brandInfo.manufacturingCountry || 'Not specified')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* International Sourcing */}
+                      <div>
+                        <label className="block text-md font-medium text-gray-700 mb-1">
+                          Do you source components or ingredients from other countries?
+                        </label>
+                        {editMode ? (
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={brandInfo.hasInternationalSourcing}
+                              onChange={(e) => handleBooleanChange('hasInternationalSourcing', e.target.checked)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-2">Yes</span>
+                          </div>
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.hasInternationalSourcing ? 'Yes' : 'No'}</p>
+                        )}
+                      </div>
+
+                      {/* Component Sources */}
+                      {(brandInfo.hasInternationalSourcing || brandInfo.componentSources.length > 0) && (
+                        <div className="md:col-span-2">
+                          <label className="block text-md font-medium text-gray-700 mb-2">
+                            Components/Ingredients Source Countries
+                          </label>
+                          
+                          {/* List current component sources */}
+                          {brandInfo.componentSources.length > 0 && (
+                            <div className="mb-4">
+                              <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Component/Ingredient
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Country
+                                    </th>
+                                    {editMode && (
+                                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                      </th>
+                                    )}
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                  {brandInfo.componentSources.map((source, index) => (
+                                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {editMode ? (
+                                          <input
+                                            type="text"
+                                            value={source.component}
+                                            onChange={(e) => {
+                                              const updatedSource = {...source, component: e.target.value};
+                                              updateComponentSource(index, updatedSource.component, updatedSource.country);
+                                            }}
+                                            className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 outline-none border-gray-300"
+                                          />
+                                        ) : (
+                                          source.component
+                                        )}
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {editMode ? (
+                                          <select
+                                            value={source.country}
+                                            onChange={(e) => {
+                                              const updatedSource = {...source, country: e.target.value};
+                                              updateComponentSource(index, updatedSource.component, updatedSource.country);
+                                            }}
+                                            className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 outline-none border-gray-300"
+                                          >
+                                            <option value="">Select a country</option>
+                                            {COUNTRIES.map(country => (
+                                              <option key={country.code} value={country.name}>{country.name}</option>
+                                            ))}
+                                          </select>
+                                        ) : (
+                                          source.country
+                                        )}
+                                      </td>
+                                      {editMode && (
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                          <button
+                                            onClick={() => removeComponentSource(index)}
+                                            className="text-red-500 hover:text-red-700"
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
+                                        </td>
+                                      )}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                          
+                          {/* Add new component form */}
+                          {editMode && brandInfo.hasInternationalSourcing && (
+                            <div className="flex flex-wrap items-end gap-4 p-4 bg-gray-50 rounded-lg">
+                              <div className="flex-1">
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                  Component/Ingredient
+                                </label>
+                                <input
+                                  type="text"
+                                  id="new-component"
+                                  placeholder="Enter component or ingredient"
+                                  className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                  Country
+                                </label>
+                                <select
+                                  id="new-country"
+                                  className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                                >
+                                  <option value="">Select a country</option>
+                                  {COUNTRIES.map(country => (
+                                    <option key={country.code} value={country.name}>{country.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const componentInput = document.getElementById('new-component');
+                                  const countryInput = document.getElementById('new-country');
+                                  if (componentInput && countryInput) {
+                                    const component = componentInput.value.trim();
+                                    const country = countryInput.value;
+                                    if (addComponentSource(component, country)) {
+                                      componentInput.value = '';
+                                      countryInput.value = '';
+                                    }
+                                  }
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                              >
+                                <Plus size={16} className="mr-1" />
+                                Add
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Products sold to retail */}
+                      <div>
+                        <label className="block text-md font-medium text-gray-700 mb-1">
+                          How many products do you currently sell to retail?
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="number"
+                            min="0"
+                            value={brandInfo.productCount}
+                            onChange={(e) => handleNumberChange('productCount', e.target.value)}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                          />
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.productCount || '0'}</p>
+                        )}
+                      </div>
+
+                      {/* Retailer locations */}
+                      <div>
+                        <label className="block text-md font-medium text-gray-700 mb-1">
+                          How many retailer locations are your products listed in currently?
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="number"
+                            min="0"
+                            value={brandInfo.retailerLocationCount}
+                            onChange={(e) => handleNumberChange('retailerLocationCount', e.target.value)}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-300"
+                          />
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.retailerLocationCount || '0'}</p>
+                        )}
+                      </div>
+
+                      {/* GS1 Registration */}
+                      <div>
+                        <label className="block text-md font-medium text-gray-700 mb-1">
+                          Are your products registered with GS1?
+                        </label>
+                        {editMode ? (
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={brandInfo.isGS1Registered}
+                              onChange={(e) => handleBooleanChange('isGS1Registered', e.target.checked)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-2">Yes</span>
+                          </div>
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.isGS1Registered ? 'Yes' : 'No'}</p>
+                        )}
+                      </div>
+
+                      {/* EDI Support */}
+                      <div>
+                        <label className="block text-md font-medium text-gray-700 mb-1">
+                          Do you support EDI?
+                        </label>
+                        {editMode ? (
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={brandInfo.supportsEDI}
+                              onChange={(e) => handleBooleanChange('supportsEDI', e.target.checked)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-2">Yes</span>
+                          </div>
+                        ) : (
+                          <p className="text-gray-800">{brandInfo.supportsEDI ? 'Yes' : 'No'}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}

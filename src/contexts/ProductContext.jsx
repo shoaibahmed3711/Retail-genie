@@ -45,6 +45,131 @@ export const ProductProvider = ({ children }) => {
     }
   }, []);
 
+  // Helper to parse complex nested structures in form data
+  const parseNestedObjects = (productData) => {
+    // Arrays that need to be parsed from string to array
+    const arrayFields = [
+      'tags', 
+      'certifications.certificationList', 
+      'packaging.multipleLanguages.languages', 
+      'packaging.ingredients.ingredientsList', 
+      'packaging.ingredients.foreignIngredients.sourceCountries',
+      'packaging.callouts.calloutList', 
+      'distribution.retailers'
+    ];
+    
+    // Parse array fields
+    arrayFields.forEach(field => {
+      const fieldPath = field.split('.');
+      let currentObj = productData;
+      let exists = true;
+      
+      // Navigate to the nested property location
+      for (let i = 0; i < fieldPath.length - 1; i++) {
+        if (!currentObj || !currentObj[fieldPath[i]]) {
+          exists = false;
+          break;
+        }
+        currentObj = currentObj[fieldPath[i]];
+      }
+      
+      // Parse the JSON string to array if it exists
+      const lastField = fieldPath[fieldPath.length - 1];
+      if (exists && currentObj && currentObj[lastField] && typeof currentObj[lastField] === 'string') {
+        try {
+          currentObj[lastField] = JSON.parse(currentObj[lastField]);
+        } catch (e) {
+          // If not valid JSON, keep as is (might be a single string)
+          if (!Array.isArray(currentObj[lastField])) {
+            currentObj[lastField] = currentObj[lastField].split(',').map(item => item.trim());
+          }
+        }
+      }
+    });
+    
+    // Complex objects that need special handling
+    const complexObjects = [
+      'distribution.distributors',
+      'broker.brokers',
+      'allergens'
+    ];
+    
+    complexObjects.forEach(field => {
+      const fieldPath = field.split('.');
+      let currentObj = productData;
+      let exists = true;
+      
+      // Navigate to the nested property location
+      for (let i = 0; i < fieldPath.length - 1; i++) {
+        if (!currentObj || !currentObj[fieldPath[i]]) {
+          exists = false;
+          break;
+        }
+        currentObj = currentObj[fieldPath[i]];
+      }
+      
+      const lastField = fieldPath[fieldPath.length - 1];
+      if (exists && currentObj && typeof currentObj[lastField] === 'string') {
+        try {
+          currentObj[lastField] = JSON.parse(currentObj[lastField]);
+        } catch (e) {
+          console.warn(`Failed to parse ${field}:`, e);
+        }
+      }
+    });
+    
+    return productData;
+  };
+
+  // Ensure all boolean fields are correctly set
+  const processBooleanFields = (productData) => {
+    const booleanFields = [
+      'packaging.productBarcode.hasUPC',
+      'packaging.multipleLanguages.hasMultipleLanguages',
+      'packaging.casePackaging.hasCasePacking',
+      'packaging.innerCasePackaging.hasInnerCase',
+      'packaging.callouts.hasCallouts',
+      'packaging.ingredients.isFrozen',
+      'packaging.ingredients.isRefrigerated',
+      'packaging.ingredients.isShelfStable',
+      'packaging.ingredients.hasIngredients',
+      'packaging.ingredients.foreignIngredients.hasSourcedIngredients',
+      'packaging.shelfLife.hasShelfLife',
+      'packaging.nutritionalInfo.hasNutritionalLabel',
+      'certifications.hasCertifications',
+      'distribution.hasDistributors',
+      'broker.hasBrokers',
+      'marketing.hasElevatorPitch',
+      'marketing.hasSellSheet',
+      'marketing.hasPresentation'
+    ];
+    
+    booleanFields.forEach(field => {
+      const fieldPath = field.split('.');
+      let currentObj = productData;
+      let exists = true;
+      
+      // Navigate to the nested property location
+      for (let i = 0; i < fieldPath.length - 1; i++) {
+        if (!currentObj || !currentObj[fieldPath[i]]) {
+          exists = false;
+          break;
+        }
+        currentObj = currentObj[fieldPath[i]];
+      }
+      
+      const lastField = fieldPath[fieldPath.length - 1];
+      if (exists && currentObj) {
+        // Convert string 'true'/'false' to boolean
+        if (typeof currentObj[lastField] === 'string') {
+          currentObj[lastField] = currentObj[lastField].toLowerCase() === 'true';
+        }
+      }
+    });
+    
+    return productData;
+  };
+
   const createProduct = useCallback(async (productData) => {
     setLoading(true);
     try {
@@ -57,7 +182,65 @@ export const ProductProvider = ({ children }) => {
             'Content-Type': 'multipart/form-data'
           }
         };
+        
+        // Log FormData entries for debugging
+        console.log('Form data entries:');
+        for (let [key, value] of productData.entries()) {
+          if (key !== 'productImage' && 
+              key !== 'ingredientsLabel' && 
+              key !== 'nutritionalLabel' && 
+              key !== 'elevatorPitchFile' && 
+              key !== 'sellSheetFile' && 
+              key !== 'presentationFile') {
+            console.log(`${key}: ${value}`);
+          } else {
+            console.log(`${key}: [FILE]`);
+          }
+        }
+        
+        // Add empty arrays for distributors and brokers if they don't exist
+        if (!productData.has('distribution.distributors')) {
+          productData.append('distribution.distributors', JSON.stringify([]));
+        }
+        
+        if (!productData.has('broker.brokers')) {
+          productData.append('broker.brokers', JSON.stringify([]));
+        }
       } else {
+        // Process nested JSON structures
+        productData = parseNestedObjects(productData);
+        productData = processBooleanFields(productData);
+        
+        // Ensure distributors is an array
+        if (productData.distribution && productData.distribution.distributors) {
+          if (typeof productData.distribution.distributors === 'string') {
+            try {
+              productData.distribution.distributors = JSON.parse(productData.distribution.distributors);
+            } catch (e) {
+              productData.distribution.distributors = [];
+            }
+          } else if (!Array.isArray(productData.distribution.distributors)) {
+            productData.distribution.distributors = [];
+          }
+        } else if (productData.distribution) {
+          productData.distribution.distributors = [];
+        }
+        
+        // Ensure brokers is an array
+        if (productData.broker && productData.broker.brokers) {
+          if (typeof productData.broker.brokers === 'string') {
+            try {
+              productData.broker.brokers = JSON.parse(productData.broker.brokers);
+            } catch (e) {
+              productData.broker.brokers = [];
+            }
+          } else if (!Array.isArray(productData.broker.brokers)) {
+            productData.broker.brokers = [];
+          }
+        } else if (productData.broker) {
+          productData.broker.brokers = [];
+        }
+        
         // Convert empty strings to undefined for required fields
         const cleanedData = Object.fromEntries(
           Object.entries(productData).map(([key, value]) => [
@@ -67,17 +250,53 @@ export const ProductProvider = ({ children }) => {
         );
         
         // Ensure numeric fields are numbers
-        cleanedData.price = Number(cleanedData.price);
-        cleanedData.stock = Number(cleanedData.stock);
-        cleanedData.cogs = cleanedData.cogs ? Number(cleanedData.cogs) : 0;
-        cleanedData.discount = cleanedData.discount ? Number(cleanedData.discount) : 0;
-        cleanedData.margin = cleanedData.margin ? Number(cleanedData.margin) : 0;
+        const numericFields = [
+          'msrp', 'retailMargin', 'wholesalePrice', 'casePackSize', 
+          'casePrice', 'cogs', 'stock', 'discount',
+          'packaging.unitPackaging.height',
+          'packaging.unitPackaging.width',
+          'packaging.unitPackaging.length',
+          'packaging.unitPackaging.weight',
+          'packaging.casePackaging.height',
+          'packaging.casePackaging.width',
+          'packaging.casePackaging.length',
+          'packaging.casePackaging.weight',
+          'packaging.casePackaging.casesPerTier',
+          'packaging.casePackaging.tiersPerPallet',
+          'packaging.innerCasePackaging.unitsPerInnerCase',
+          'packaging.innerCasePackaging.height',
+          'packaging.innerCasePackaging.width',
+          'packaging.innerCasePackaging.length',
+          'packaging.innerCasePackaging.weight',
+          'packaging.shelfLife.value'
+        ];
+        
+        numericFields.forEach(field => {
+          const fieldPath = field.split('.');
+          let currentObj = cleanedData;
+          let exists = true;
+          
+          // Navigate to the nested property location
+          for (let i = 0; i < fieldPath.length - 1; i++) {
+            if (!currentObj[fieldPath[i]]) {
+              exists = false;
+              break;
+            }
+            currentObj = currentObj[fieldPath[i]];
+          }
+          
+          const lastField = fieldPath[fieldPath.length - 1];
+          if (exists && currentObj[lastField] !== undefined && currentObj[lastField] !== '') {
+            currentObj[lastField] = Number(currentObj[lastField]);
+          }
+        });
         
         productData = cleanedData;
+        console.log('Creating product with data:', JSON.stringify(productData, null, 2));
       }
   
       const response = await apiClient.post('/products', productData, config);
-      console.log('Product created response:', response.data); // Add this log
+      console.log('Product created response:', response.data);
       
       // Make sure we're getting the full product data with imageUrl from the server
       const newProduct = response.data;
@@ -103,7 +322,129 @@ export const ProductProvider = ({ children }) => {
   const updateProduct = useCallback(async (id, productData) => {
     setLoading(true);
     try {
-      const response = await apiClient.put(`/products/${id}`, productData);
+      let config = {};
+      
+      // If productData is FormData, we need to set the correct headers
+      if (productData instanceof FormData) {
+        config = {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        };
+        
+        // Log FormData entries for debugging
+        console.log('Form data entries for update:');
+        for (let [key, value] of productData.entries()) {
+          if (key !== 'productImage' && 
+              key !== 'ingredientsLabel' && 
+              key !== 'nutritionalLabel' && 
+              key !== 'elevatorPitchFile' && 
+              key !== 'sellSheetFile' && 
+              key !== 'presentationFile') {
+            console.log(`${key}: ${value}`);
+          } else {
+            console.log(`${key}: [FILE]`);
+          }
+        }
+        
+        // Add empty arrays for distributors and brokers if they don't exist
+        if (!productData.has('distribution.distributors')) {
+          productData.append('distribution.distributors', JSON.stringify([]));
+        }
+        
+        if (!productData.has('broker.brokers')) {
+          productData.append('broker.brokers', JSON.stringify([]));
+        }
+      } else {
+        // Process nested JSON structures
+        productData = parseNestedObjects(productData);
+        productData = processBooleanFields(productData);
+        
+        // Ensure distributors is an array
+        if (productData.distribution && productData.distribution.distributors) {
+          if (typeof productData.distribution.distributors === 'string') {
+            try {
+              productData.distribution.distributors = JSON.parse(productData.distribution.distributors);
+            } catch (e) {
+              productData.distribution.distributors = [];
+            }
+          } else if (!Array.isArray(productData.distribution.distributors)) {
+            productData.distribution.distributors = [];
+          }
+        } else if (productData.distribution) {
+          productData.distribution.distributors = [];
+        }
+        
+        // Ensure brokers is an array
+        if (productData.broker && productData.broker.brokers) {
+          if (typeof productData.broker.brokers === 'string') {
+            try {
+              productData.broker.brokers = JSON.parse(productData.broker.brokers);
+            } catch (e) {
+              productData.broker.brokers = [];
+            }
+          } else if (!Array.isArray(productData.broker.brokers)) {
+            productData.broker.brokers = [];
+          }
+        } else if (productData.broker) {
+          productData.broker.brokers = [];
+        }
+        
+        // Convert empty strings to undefined for required fields
+        const cleanedData = Object.fromEntries(
+          Object.entries(productData).map(([key, value]) => [
+            key,
+            value === '' ? undefined : value
+          ])
+        );
+        
+        // Ensure numeric fields are numbers
+        const numericFields = [
+          'msrp', 'retailMargin', 'wholesalePrice', 'casePackSize', 
+          'casePrice', 'cogs', 'stock', 'discount',
+          'packaging.unitPackaging.height',
+          'packaging.unitPackaging.width',
+          'packaging.unitPackaging.length',
+          'packaging.unitPackaging.weight',
+          'packaging.casePackaging.height',
+          'packaging.casePackaging.width',
+          'packaging.casePackaging.length',
+          'packaging.casePackaging.weight',
+          'packaging.casePackaging.casesPerTier',
+          'packaging.casePackaging.tiersPerPallet',
+          'packaging.innerCasePackaging.unitsPerInnerCase',
+          'packaging.innerCasePackaging.height',
+          'packaging.innerCasePackaging.width',
+          'packaging.innerCasePackaging.length',
+          'packaging.innerCasePackaging.weight',
+          'packaging.shelfLife.value'
+        ];
+        
+        numericFields.forEach(field => {
+          const fieldPath = field.split('.');
+          let currentObj = cleanedData;
+          let exists = true;
+          
+          // Navigate to the nested property location
+          for (let i = 0; i < fieldPath.length - 1; i++) {
+            if (!currentObj[fieldPath[i]]) {
+              exists = false;
+              break;
+            }
+            currentObj = currentObj[fieldPath[i]];
+          }
+          
+          const lastField = fieldPath[fieldPath.length - 1];
+          if (exists && currentObj[lastField] !== undefined && currentObj[lastField] !== '') {
+            currentObj[lastField] = Number(currentObj[lastField]);
+          }
+        });
+        
+        productData = cleanedData;
+        console.log('Updating product with data:', JSON.stringify(productData, null, 2));
+      }
+      
+      const response = await apiClient.put(`/products/${id}`, productData, config);
       setProducts((prevProducts) =>
         prevProducts.map((product) => (product._id === id ? response.data : product))
       );
