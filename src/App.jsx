@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createHashRouter, RouterProvider } from 'react-router-dom'
 // contexts
 
 import { AuthProvider } from './contexts/AuthContext'
@@ -62,7 +62,7 @@ import BrandOwnerpage from './pages/brand-owner/brand-owner'
 import BrandManagerPage from './pages/brand-manager/brand-manager'
 import BuyerPage from './pages/buyer/buyer'
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     children: [
       {
