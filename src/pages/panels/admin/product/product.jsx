@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
     Plus, Package, Search, Filter, SortAsc,
@@ -521,7 +522,7 @@ const ProductCard = ({ product, onEdit, onDelete }) => {
     );
 };
 
-const AdminProduct = () => {
+const BrandManagerProducts = () => {
     const [products, setProducts] = useState(initialProducts);
     const [showForm, setShowForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -662,4 +663,4 @@ const AdminProduct = () => {
     );
 };
 
-export default AdminProduct;
+export default BrandManagerProducts;

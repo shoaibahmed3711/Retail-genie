@@ -6,7 +6,6 @@ const navLinks = [
   { name: "Overview", path: "/AdminOverview", icon: <Home size={20} /> },
   { name: "Products", path: "/AdminProduct", icon: <Package size={20} /> },
   { name: "Role/Team", path: "/AdminRole", icon: <ShieldHalf size={20} /> },
-  { name: "Transations", path: "/AdminTransations", icon: <DollarSign size={20} /> },
   { name: "Settings", path: "/AdminSettings", icon: <Settings size={20} /> },
 ];
 
@@ -25,15 +24,6 @@ const AdminSidebar = () => {
       >
         {/* Logo and Toggle */}
         <div className="flex items-center justify-between p-6 border-b border-blue-700/50">
-          <div className="flex items-center gap-3">
-            <div className="text-xl bg-white text-blue-900 p-3 rounded-lg font-bold shadow-md">
-              LOGO
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-wide">Brand</h1>
-              <h2 className="text-sm text-blue-200">Dashboard</h2>
-            </div>
-          </div>
           <button 
             className="lg:hidden text-blue-200 hover:text-white transition-colors"
             onClick={() => setShowNav(false)}
@@ -69,16 +59,6 @@ const AdminSidebar = () => {
           </ul>
         </nav>
 
-        {/* Upgrade to Pro Card */}
-        <div className="p-4 mx-4 mb-6">
-          <div className="bg-gradient-to-br from-blue-700 to-blue-600 p-6 rounded-xl shadow-lg">
-            <h3 className="text-lg font-semibold mb-2">Upgrade to Pro</h3>
-            <p className="text-sm text-blue-200 mb-4">Get access to all premium features</p>
-            <button className="w-full bg-white text-blue-900 py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors duration-200 shadow-md">
-              Upgrade Now
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Mobile Toggle Button */}

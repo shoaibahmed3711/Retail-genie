@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 
-const BuyerSettings = () => {
+const AdminSettings = () => {
     const [activeTab, setActiveTab] = useState("account");
     const [darkMode, setDarkMode] = useState(false);
     const [notifications, setNotifications] = useState({
@@ -19,12 +19,12 @@ const BuyerSettings = () => {
     });
 
     const [formData, setFormData] = useState({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        phone: '+1234567890',
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
         language: 'english',
-        timezone: 'UTC-5',
+        timezone: '',
         currency: 'USD',
         theme: 'light',
         autoBackup: true,
@@ -109,10 +109,10 @@ const BuyerSettings = () => {
 
     return (
         <div className="absolute overflow-y-auto bg-[#fbfbfb] h-screen p-8 top-0 w-full left-0 xl:left-[250px] xl:w-[calc(100%-250px)]">
-            <div className='container-fluid'>
+            <div className=' container-fluid'>
                 <div >
                     <div className="flex justify-between items-center mb-6">
-                        <h1  className="text-2xl font-semibold text-gray-800">Settings</h1>
+                        <h1  className="text-xl font-bold text-gray-900">Settings</h1>
                         <button
                             onClick={() => setDarkMode(!darkMode)}
                             className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
@@ -417,4 +417,4 @@ const BuyerSettings = () => {
     );
 };
 
-export default BuyerSettings;
+export default AdminSettings;

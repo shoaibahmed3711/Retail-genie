@@ -19,12 +19,12 @@ const AdminSettings = () => {
     });
 
     const [formData, setFormData] = useState({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        phone: '+1234567890',
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
         language: 'english',
-        timezone: 'UTC-5',
+        timezone: '',
         currency: 'USD',
         theme: 'light',
         autoBackup: true,

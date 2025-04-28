@@ -10,17 +10,17 @@ import {
 const AdminOverview = () => {
   // Stats cards data
   const statsCards = [
-    { title: 'Total Brands', value: '2,846', icon: <Building2 className="w-6 h-6" />, trend: '+15%' },
-    { title: 'Total Products', value: '12,458', icon: <Package className="w-6 h-6" />, trend: '+8%' },
-    { title: 'Active Buyers', value: '8,392', icon: <Users className="w-6 h-6" />, trend: '+25%' }
+    { title: 'Total Brands', value: '0', icon: <Building2 className="w-6 h-6" />, trend: '+0%' },
+    { title: 'Total Products', value: '0', icon: <Package className="w-6 h-6" />, trend: '+0%' },
+    { title: 'Active Buyers', value: '0', icon: <Users className="w-6 h-6" />, trend: '+0%' }
   ];
 
   // Latest updates data
   const latestUpdates = [
-    { platform: 'Brand Registration', status: 'pending', icon: <Building2 className="w-5 h-5" /> },
-    { platform: 'Product Listing', status: 'completed', icon: <Package className="w-5 h-5" /> },
+    { platform: 'Brand Registration', status: 'in-progress', icon: <Building2 className="w-5 h-5" /> },
+    { platform: 'Product Listing', status: 'in-progress', icon: <Package className="w-5 h-5" /> },
     { platform: 'Sample Request', status: 'in-progress', icon: <Clock className="w-5 h-5" /> },
-    { platform: 'User Report', status: 'completed', icon: <Users className="w-5 h-5" /> }
+    { platform: 'User Report', status: 'in-progress', icon: <Users className="w-5 h-5" /> }
   ];
 
   return (
@@ -143,7 +143,7 @@ const AdminOverview = () => {
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-lg font-medium">Platform Overview</h3>
-                <p className="text-3xl font-bold mt-2">2,846</p>
+                <p className="text-3xl font-bold mt-2">0</p>
                 <p className="text-sm mt-1 opacity-90">Active Brands</p>
                 <div className="flex items-center gap-2 mt-4">
                   <Share2 className="w-4 h-4" />
@@ -156,7 +156,7 @@ const AdminOverview = () => {
             </div>
             <div className="mt-6">
               <div className="h-2 bg-white/20 rounded-full">
-                <div className="h-2 bg-white rounded-full w-3/4"></div>
+                <div className="h-2 bg-white rounded-full w-1/24"></div>
               </div>
             </div>
           </div>
