@@ -1,4 +1,4 @@
-import { createHashRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 // contexts
 
 import { AuthProvider } from './contexts/AuthContext'
@@ -51,7 +51,6 @@ import BuyerSettings from './pages/panels/buyer/settings/settings'
 import AdminOverview from './pages/panels/admin/overview/overview'
 import AdminProduct from './pages/panels/admin/product/product'
 import AdminRole from './pages/panels/admin/roles/role'
-import AdminTransations from './pages/panels/admin/transactions/transations'
 import AdminSettings from './pages/panels/admin/settings/settings'
 
 // pages
@@ -62,7 +61,7 @@ import BrandOwnerpage from './pages/brand-owner/brand-owner'
 import BrandManagerPage from './pages/brand-manager/brand-manager'
 import BuyerPage from './pages/buyer/buyer'
 
-const router = createHashRouter([
+const router = createBrowserRouter([
   {
     children: [
       {
@@ -180,10 +179,6 @@ const router = createHashRouter([
       {
         path: "/AdminRole",
         element: <><AdminSidebar /><AdminRole /></>,
-      },
-      {
-        path: "/AdminTransations",
-        element: <><AdminSidebar /><AdminTransations /></>,
       },
       {
         path: "/AdminSettings",

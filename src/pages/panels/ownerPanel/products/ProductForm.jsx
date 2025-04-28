@@ -3,12 +3,10 @@ import { Plus, Upload } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const ProductForm = ({ onClose, onAddProduct, editProduct = null }) => {
-    const [formData, setFormData] = useState(editProduct || {
+    const [formData, setFormData] = useState({
         name: '',
         description: '',
-        detailedDescription: '',
         category: '',
-        msrp: '',
         cogs: '',
         margin: '',
         stock: '',

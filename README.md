@@ -18,9 +18,19 @@ npm run build
 npm run preview
 ```
 
-## Deployment to GitLab Pages
+## Deployment
 
-This project is configured for automatic deployment to GitLab Pages:
+### Deploying with Render
+
+This project includes a `render.yaml` file for automatic deployment with Render:
+
+1. Connect your GitLab/GitHub repository to Render
+2. Render will automatically detect the configuration
+3. Your app will be built and deployed at the URL provided by Render
+
+### Deploying to GitLab Pages
+
+This project is also configured for deployment to GitLab Pages:
 
 1. Push your changes to the main branch
 2. GitLab CI/CD will automatically build and deploy your application

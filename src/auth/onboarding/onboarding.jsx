@@ -24,7 +24,7 @@ const Onboarding = () => {
         },
         {
           title: "Retail Buyer",
-          path: "/BuyerOverview",
+          path: "/BuyerBrands",
           shade: "bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700",
           description: "Discover verified products with category filters and trend forecasting.",
           icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-20 h-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
